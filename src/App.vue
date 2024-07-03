@@ -8,7 +8,7 @@ import Toast from 'primevue/toast'
 	<header>
 		<div class="logo">
 			<RouterLink to="/">
-				<img src="/logo.png"/>
+				<img src="/logo.png" />
 			</RouterLink>
 		</div>
 		<nav class="head-nav">
@@ -62,5 +62,4 @@ header {
 	margin-left: 1rem;
 	color: var(--primary-color);
 }
-
 </style>

@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 export * from './index'
-import { RespStatus, type Device, type RTKConfig } from './index'
+import { RespStatus, type Device, type RTKConfig, type RTKInfo } from './index'
 
 interface AvaliableDevicesResp {
 	devices: Device[]
@@ -27,4 +27,9 @@ export async function connectRtkPort(config: RTKConfig): Promise<RespStatus> {
 		.post(`/api/rtk/connect`, config)
 		.then(() => RespStatus.OK)
 		.catch(RespStatus.fromError)
+}
+
+export async function getRtkStatus(): Promise<RTKInfo> {
+	const resp = await axios.get<RTKInfo>(`/api/rtk/status`)
+	return resp.data
 }

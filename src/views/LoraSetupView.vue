@@ -3,10 +3,10 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
-import Dropdown from 'primevue/dropdown'
+import Select from 'primevue/select'
 import { useToast } from 'primevue/usetoast'
 import * as api from '@/api/instance'
-import type { Device, RTKConfig } from '@/api'
+import { RespStatus, type Device } from '@/api'
 
 const props = defineProps<{
 	nextURL?: string
@@ -31,9 +31,11 @@ async function submitLoraSetup(): Promise<void> {
 		return
 	}
 	submitting.value = true
-	await api.connectLoraPort(device.name, selectedBaudRate.value)
+	const res = await api.connectLoraPort(device.name, selectedBaudRate.value)
 	submitting.value = false
-	router.push(props.nextURL || '/')
+	if (res === RespStatus.OK) {
+		router.push(props.nextURL || '/')
+	}
 }
 
 onMounted(() => {
@@ -45,14 +47,12 @@ onMounted(() => {
 
 <template>
 	<Card class="setup-card">
-		<template #title>
-			Setup Lora
-		</template>
+		<template #title> Setup Lora </template>
 		<template #content>
 			<form v-focustrap @submit.prevent="submitLoraSetup">
 				<div class="option-box">
 					<label>Decive</label>
-					<Dropdown
+					<Select
 						v-model="selectedLoraDevice"
 						:options="
 							avaliableDevices === null
@@ -76,22 +76,18 @@ onMounted(() => {
 								avaliableDevices[slotProps.option].description
 							}})
 						</template>
-					</Dropdown>
+					</Select>
 				</div>
 				<div class="option-box">
 					<label>BaudRate</label>
-					<Dropdown
-						v-model="selectedBaudRate"
-						:options="avaliableBaudRates"
-						placeholder="BaudRate"
-					>
+					<Select v-model="selectedBaudRate" :options="avaliableBaudRates" placeholder="BaudRate">
 						<template #value="slotProps">
 							{{ slotProps.value }}
 						</template>
 						<template #option="slotProps">
 							{{ slotProps.option }}
 						</template>
-					</Dropdown>
+					</Select>
 				</div>
 				<div class="button-box">
 					<Button type="submit" label="Submit" :loading="submitting" />
@@ -137,5 +133,4 @@ onMounted(() => {
 	width: 100%;
 	height: 3rem;
 }
-
 </style>

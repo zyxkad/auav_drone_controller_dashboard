@@ -1,5 +1,5 @@
 export * from './index'
-import { RespStatus, type Device, type RTKConfig } from './index'
+import { RespStatus, RTKStatus, type Device, type RTKConfig, type RTKInfo } from './index'
 
 async function randomSleep(min: number, max?: number): Promise<number> {
 	max ||= min
@@ -34,7 +34,37 @@ export async function connectLoraPort(deviceName: string, baudRate: number): Pro
 	return RespStatus.OK
 }
 
+var rtkSvinSimInterval: ReturnType<typeof setInterval> | undefined = undefined
+
 export async function connectRtkPort(config: RTKConfig): Promise<RespStatus> {
 	await randomSleep(0.1, 5)
+	rtkStatus.status = RTKStatus.SURVEY_IN
+	rtkStatus.svinDur = 0
+	rtkStatus.svinAcc = 9999
+	clearInterval(rtkSvinSimInterval)
+	rtkSvinSimInterval = setInterval(() => {
+		rtkStatus.svinDur++
+		if (rtkStatus.svinAcc > 10) {
+			rtkStatus.svinAcc -= (rtkStatus.svinAcc - 10) / 2 - Math.random() * 5
+		} else {
+			rtkStatus.svinAcc -= 0.1 + (Math.random() * 1.2 - 0.5)
+		}
+		if (rtkStatus.svinAcc <= 1) {
+			rtkStatus.status = RTKStatus.READY
+			clearInterval(rtkSvinSimInterval)
+			rtkSvinSimInterval = undefined
+		}
+	}, 1000)
 	return RespStatus.OK
+}
+
+const rtkStatus: RTKInfo = {
+	status: RTKStatus.NONE,
+	svinDur: 0,
+	svinAcc: 0,
+}
+
+export async function getRtkStatus(): Promise<RTKInfo> {
+	await randomSleep(0.1, 0.5)
+	return rtkStatus
 }

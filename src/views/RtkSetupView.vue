@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
-import Dropdown from 'primevue/dropdown'
+import Select from 'primevue/select'
 import InputNumber from 'primevue/inputnumber'
-import InputSwitch from 'primevue/inputswitch'
+import ToggleSwitch from 'primevue/toggleswitch'
 import { useToast } from 'primevue/usetoast'
 import * as api from '@/api/instance'
-import type { Device, RTKConfig } from '@/api'
+import { RespStatus, type Device, type RTKConfig } from '@/api'
 
+const props = defineProps<{
+	nextURL?: string
+}>()
+
+const router = useRouter()
 const toast = useToast()
 
 const rtkConfig = reactive({
@@ -32,7 +38,7 @@ async function submitRTKSetup(): Promise<void> {
 		return
 	}
 	submitting.value = true
-	await api.connectRtkPort({
+	const res = await api.connectRtkPort({
 		device: device.name,
 		baudRate: rtkConfig.baudRate,
 		surveyIn: rtkConfig.surveyIn,
@@ -40,6 +46,9 @@ async function submitRTKSetup(): Promise<void> {
 		surveyInAcc: rtkConfig.surveyInAcc,
 	})
 	submitting.value = false
+	if (res === RespStatus.OK) {
+		router.push(props.nextURL || '/')
+	}
 }
 
 onMounted(() => {
@@ -51,14 +60,12 @@ onMounted(() => {
 
 <template>
 	<Card class="setup-card">
-		<template #title>
-			Setup RTK
-		</template>
+		<template #title> Setup RTK </template>
 		<template #content>
 			<form v-focustrap @submit.prevent="submitRTKSetup">
 				<div class="option-box">
 					<label>Decive</label>
-					<Dropdown
+					<Select
 						v-model="rtkConfig.device"
 						:options="
 							avaliableDevices === null
@@ -82,11 +89,11 @@ onMounted(() => {
 								avaliableDevices[slotProps.option].description
 							}})
 						</template>
-					</Dropdown>
+					</Select>
 				</div>
 				<div class="option-box">
 					<label>BaudRate</label>
-					<Dropdown
+					<Select
 						v-model="rtkConfig.baudRate"
 						:options="avaliableBaudRates"
 						placeholder="BaudRate"
@@ -97,13 +104,11 @@ onMounted(() => {
 						<template #option="slotProps">
 							{{ slotProps.option }}
 						</template>
-					</Dropdown>
+					</Select>
 				</div>
 				<div class="option-box">
 					<label>Survey-In</label>
-					<InputSwitch
-						v-model="rtkConfig.surveyIn"
-					/>
+					<ToggleSwitch v-model="rtkConfig.surveyIn" />
 				</div>
 				<div class="option-box">
 					<label>SVIN Duration</label>
@@ -170,5 +175,4 @@ onMounted(() => {
 	width: 100%;
 	height: 3rem;
 }
-
 </style>

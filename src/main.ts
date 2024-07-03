@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
+import Aura from '@primevue/themes/aura'
 import FocusTrap from 'primevue/focustrap'
 import ToastService from 'primevue/toastservice'
 
@@ -15,7 +16,12 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 
-app.use(PrimeVue, { ripple: true })
+app.use(PrimeVue, {
+	ripple: true,
+	theme: {
+		preset: Aura,
+	},
+})
 app.use(ToastService)
 app.directive('focustrap', FocusTrap)
 

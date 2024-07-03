@@ -167,7 +167,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .outer {
 	position: relative;
-	border-radius: 1rem;
+	border-radius: 0.5rem;
 	background: #555;
 	overflow: hidden;
 }
@@ -186,15 +186,15 @@ onBeforeUnmount(() => {
 	left: 0;
 	width: 100%;
 	height: 100%;
-	border-radius: 1rem;
-	box-shadow: 3px 3px 20px -3px #000 inset;
+	border-radius: 0.5rem;
+	box-shadow: 2px 2px 15px -2px #000 inset;
 	pointer-events: none;
 }
 
 .box {
 	display: flex;
 	flex-direction: column;
-	font-size: 1rem;
+	font-size: 0.9rem;
 	font-family: monospace;
 	white-space: pre;
 }
@@ -230,7 +230,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 60rem) {
 	.box {
-		font-size: 0.85rem;
+		font-size: 0.8rem;
 	}
 }
 </style>

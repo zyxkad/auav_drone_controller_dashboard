@@ -2,8 +2,8 @@ import { AxiosError } from 'axios'
 
 export enum RespStatus {
 	OK = 200,
-	NotFound = 404,
-	Conflict = 409,
+	NOT_FOUND = 404,
+	CONFLICT = 409,
 }
 
 export namespace RespStatus {
@@ -12,9 +12,9 @@ export namespace RespStatus {
 			if (err.response) {
 				switch (err.response.status) {
 					case 404:
-						return RespStatus.NotFound
+						return RespStatus.NOT_FOUND
 					case 409:
-						return RespStatus.Conflict
+						return RespStatus.CONFLICT
 				}
 			}
 		}
@@ -40,3 +40,16 @@ export type RTKConfig = {
 			surveyInAcc: number
 	  }
 )
+
+export enum RTKStatus {
+	NONE = 'N/A',
+	SURVEY_IN = 'SVIN',
+	READY = 'READY',
+	OK = 'OK',
+}
+
+export interface RTKInfo {
+	status: RTKStatus
+	svinDur: number
+	svinAcc: number
+}
