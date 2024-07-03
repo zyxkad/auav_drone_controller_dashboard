@@ -66,6 +66,7 @@ onMounted(() => {
 				<div class="option-box">
 					<label>Decive</label>
 					<Select
+						class="option-input"
 						v-model="rtkConfig.device"
 						:options="
 							avaliableDevices === null
@@ -94,6 +95,7 @@ onMounted(() => {
 				<div class="option-box">
 					<label>BaudRate</label>
 					<Select
+						class="option-input"
 						v-model="rtkConfig.baudRate"
 						:options="avaliableBaudRates"
 						placeholder="BaudRate"
@@ -114,6 +116,7 @@ onMounted(() => {
 					<label>SVIN Duration</label>
 					<InputNumber
 						:disabled="!rtkConfig.surveyIn"
+						class="option-input"
 						v-model="rtkConfig.surveyInDur"
 						placeholder="Survey-In Duration"
 						suffix="s"
@@ -124,6 +127,7 @@ onMounted(() => {
 					<label>SVIN Accuracy</label>
 					<InputNumber
 						:disabled="!rtkConfig.surveyIn"
+						class="option-input"
 						v-model="rtkConfig.surveyInAcc"
 						placeholder="Survey-In Accuracy"
 						suffix="m"
@@ -148,7 +152,6 @@ onMounted(() => {
 	top: 50%;
 	left: 50%;
 	width: 25rem;
-	height: 30rem;
 	transform: translate(-50%, -50%);
 }
 
@@ -165,6 +168,10 @@ onMounted(() => {
 	display: inline-block;
 	width: 8rem;
 	font-weight: 500;
+}
+
+.option-input {
+	width: 14rem;
 }
 
 .button-box {

@@ -2,7 +2,8 @@
 import { reactive, watch } from 'vue'
 import { useRequest } from 'vue-request'
 import Card from 'primevue/card'
-import { getRtkStatus, RTKStatus, type RTKInfo } from '@/api/instance'
+import { RTKStatus, type RTKInfo } from '@/api'
+import * as api from '@/api/instance'
 
 const rtkInfo = reactive<RTKInfo>({
 	status: RTKStatus.NONE,
@@ -11,7 +12,7 @@ const rtkInfo = reactive<RTKInfo>({
 })
 
 // TODO: should use socket.io push
-const { data, error, loading } = useRequest(() => getRtkStatus(), {
+const { data, error, loading } = useRequest(() => api.getRtkStatus(), {
 	pollingInterval: 1000,
 	loadingDelay: 500,
 	loadingKeep: 2000,

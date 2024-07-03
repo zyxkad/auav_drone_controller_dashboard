@@ -1,5 +1,12 @@
 export * from './index'
-import { RespStatus, RTKStatus, type Device, type RTKConfig, type RTKInfo } from './index'
+import {
+	RespStatus,
+	RTKStatus,
+	type Device,
+	type LoraConfig,
+	type RTKConfig,
+	type RTKInfo,
+} from './index'
 
 async function randomSleep(min: number, max?: number): Promise<number> {
 	max ||= min
@@ -20,6 +27,10 @@ export async function getAvaliableDevices(): Promise<Device[]> {
 		},
 		{
 			name: '/dev/cu.2',
+			description: 'a really really really really really long desc',
+		},
+		{
+			name: '/dev/cu.2',
 			description: 'n/a',
 		},
 		{
@@ -29,7 +40,7 @@ export async function getAvaliableDevices(): Promise<Device[]> {
 	]
 }
 
-export async function connectLoraPort(deviceName: string, baudRate: number): Promise<RespStatus> {
+export async function connectLoraPort(config: LoraConfig): Promise<RespStatus> {
 	await randomSleep(0.1, 5)
 	return RespStatus.OK
 }

@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Select from 'primevue/select'
 import { useToast } from 'primevue/usetoast'
 import * as api from '@/api/instance'
-import { RespStatus, type Device } from '@/api'
+import { RespStatus, type Device, type LoraConfig } from '@/api'
 
 const props = defineProps<{
 	nextURL?: string
@@ -15,8 +15,10 @@ const props = defineProps<{
 const router = useRouter()
 const toast = useToast()
 
-const selectedLoraDevice = ref(0)
-const selectedBaudRate = ref(115200)
+const loraConfig = reactive({
+	device: 0,
+	baudRate: 115200,
+})
 
 const avaliableDevices = ref<Device[] | null>(null)
 const avaliableBaudRates = [4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600]
@@ -26,12 +28,15 @@ async function submitLoraSetup(): Promise<void> {
 	if (avaliableDevices.value === null) {
 		return
 	}
-	const device = avaliableDevices.value[selectedLoraDevice.value]
+	const device = avaliableDevices.value[loraConfig.device]
 	if (!device) {
 		return
 	}
 	submitting.value = true
-	const res = await api.connectLoraPort(device.name, selectedBaudRate.value)
+	const res = await api.connectLoraPort({
+		device: device.name,
+		baudRate: loraConfig.baudRate,
+	})
 	submitting.value = false
 	if (res === RespStatus.OK) {
 		router.push(props.nextURL || '/')
@@ -53,7 +58,8 @@ onMounted(() => {
 				<div class="option-box">
 					<label>Decive</label>
 					<Select
-						v-model="selectedLoraDevice"
+						class="option-input"
+						v-model="loraConfig.device"
 						:options="
 							avaliableDevices === null
 								? ['Loading ...']
@@ -80,7 +86,12 @@ onMounted(() => {
 				</div>
 				<div class="option-box">
 					<label>BaudRate</label>
-					<Select v-model="selectedBaudRate" :options="avaliableBaudRates" placeholder="BaudRate">
+					<Select
+						class="option-input"
+						v-model="loraConfig.baudRate"
+						:options="avaliableBaudRates"
+						placeholder="BaudRate"
+					>
 						<template #value="slotProps">
 							{{ slotProps.value }}
 						</template>
@@ -106,7 +117,6 @@ onMounted(() => {
 	top: 50%;
 	left: 50%;
 	width: 25rem;
-	height: 18rem;
 	transform: translate(-50%, -50%);
 }
 
@@ -123,6 +133,10 @@ onMounted(() => {
 	display: inline-block;
 	width: 8rem;
 	font-weight: 500;
+}
+
+.option-input {
+	width: 14rem;
 }
 
 .button-box {

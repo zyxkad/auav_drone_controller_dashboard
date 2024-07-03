@@ -37,21 +37,23 @@ onMounted(() => {
 
 <style scoped>
 #main {
-	height: 100vh;
 	display: grid;
+	height: calc(100vh - 5rem);
+	padding-bottom: 1rem;
 	grid-gap: 0.5rem;
 	grid-template:
-		'a a r r' 13rem
+		'a a r r' 10rem
 		'a a l l' auto
 		/ auto auto;
 }
 
 .rtk-status {
 	grid-area: r;
+	height: 10rem;
 }
 
 .log-block {
 	grid-area: l;
-	height: 50vh;
+	height: 100%;
 }
 </style>

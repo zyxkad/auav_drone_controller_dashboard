@@ -27,6 +27,11 @@ export interface Device {
 	description: string
 }
 
+export type LoraConfig = {
+	device: string
+	baudRate: number
+}
+
 export type RTKConfig = {
 	device: string
 	baudRate: number
@@ -52,4 +57,45 @@ export interface RTKInfo {
 	status: RTKStatus
 	svinDur: number
 	svinAcc: number
+}
+
+export enum DroneStatus {
+	NONE = 'N/A',
+	READY = 'READY',
+	SLEEPING = 'SLEEPING',
+	ARMED = 'ARMED',
+	TAKENOFF = 'TAKENOFF',
+}
+
+export enum GPSType {
+	NO_GPS = 0,
+	NO_FIX = 1,
+	FIX_2D = 2,
+	FIX_3D = 3,
+	DGPS = 4,
+	RTK_FLOAT = 5,
+	RTK_FIXED = 6,
+	STATIC = 7,
+	PPP = 8,
+}
+
+export interface GPSInfo {
+	type: GPSType
+	lat: number // in degrees
+	lon: number // in degrees
+	alt: number // in meters
+}
+
+export interface BatteryStat {
+	voltage: number // In V
+	current: number // In A
+	remaining: number // In %
+}
+
+export interface DroneInfo {
+	status: DroneStatus
+	id: number
+	gps: GPSInfo
+	battery: BatteryStat
+	lastActivate: number // epoch in milliseconds
 }

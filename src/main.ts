@@ -34,14 +34,14 @@ app.use(PrimeVue, {
 					700: `{${primaryColor}.700}`,
 					800: `{${primaryColor}.800}`,
 					900: `{${primaryColor}.900}`,
-					950: `{${primaryColor}.950}`
+					950: `{${primaryColor}.950}`,
 				},
 			},
 		}),
 		options: {
 			darkModeSelector: 'system',
 			cssLayer: false,
-		}
+		},
 	},
 })
 app.use(ToastService)
