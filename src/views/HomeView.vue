@@ -4,7 +4,7 @@ import DroneList from '@/components/DroneList.vue'
 import DroneStatus from '@/components/DroneStatus.vue'
 import LogBlock from '@/components/LogBlock.vue'
 import RtkStatus from '@/components/RtkStatus.vue'
-import type { DroneInfo } from '@/api'
+import type { ColorInfo, DroneInfo } from '@/api'
 import * as api from '@/api/instance'
 
 const logBlk = ref<InstanceType<typeof LogBlock>>()
@@ -137,13 +137,17 @@ const drones = reactive<DroneInfo[]>([
 		},
 	},
 ])
+
+function onLedChanged(drone: number, color: ColorInfo) {
+	console.log('on led changed for:', drone, color)
+}
 </script>
 
 <template>
 	<main id="main">
 		<RtkStatus class="no-select rtk-status" />
 		<DroneStatus class="no-select drone-status" :drones="drones" />
-		<DroneList class="drone-list" :drones="drones" />
+		<DroneList class="drone-list" :drones="drones" @ledChanged="onLedChanged" />
 		<LogBlock ref="logBlk" class="log-block" />
 	</main>
 </template>

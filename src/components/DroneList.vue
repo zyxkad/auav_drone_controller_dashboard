@@ -3,15 +3,21 @@ import { ref, reactive } from 'vue'
 import Card from 'primevue/card'
 import ContextMenu from 'primevue/contextmenu'
 import type { MenuItem } from 'primevue/menuitem'
+import { useToast } from 'primevue/usetoast'
 import DroneItem from './DroneItem.vue'
-import type { DroneInfo } from '@/api'
+import type { ColorInfo, DroneInfo } from '@/api'
 
 const props = defineProps<{
 	drones: DroneInfo[]
 }>()
 
-const menu = ref<InstanceType<typeof ContextMenu>>()
+defineEmits<{
+	(e: 'ledChanged', droneId: number, color: ColorInfo): void
+}>()
 
+const toast = useToast()
+
+const menu = ref<InstanceType<typeof ContextMenu>>()
 const selected = reactive<number[]>([])
 
 function doHome(): void {
@@ -38,8 +44,21 @@ function doControlLight(): void {
 	// TODO
 }
 
-function doCopyGPS(): void {
-	// TODO
+async function doCopyGPS(): Promise<void> {
+	let data = ''
+	let count = 0
+	const drones = selected.length?selected.map((id) => props.drones.find((d) => d.id === id)):props.drones
+	for (const drone of drones) {
+		data += `{ id: ${drone.id}, lat: ${drone.gps.lat}, lon: ${drone.gps.lon}, alt: ${drone.gps.alt}, typ: ${drone.gps.type} }\n`
+		count++
+	}
+	await navigator.clipboard.writeText(data)
+	toast.add({
+		severity: 'info',
+		summary: 'GPS copied',
+		detail: `Copied ${count} items`,
+		life: 1000,
+	})
 }
 
 const globalItems: MenuItem[] = [
@@ -89,6 +108,10 @@ const menuItems = ref(globalItems)
 let lastClicked: number | null = null
 
 function onClickDrone(event: PointerEvent, id?: number) {
+	if ((event as any)._processed) {
+		return
+	}
+	;(event as any)._processed = true
 	menu.value?.hide()
 	if (event.button !== 0) {
 		return
@@ -153,7 +176,7 @@ function onContextMenu(event: PointerEvent, id?: number) {
 </script>
 
 <template>
-	<Card @click.stop="onClickDrone" @contextmenu.stop="onContextMenu">
+	<Card @click="onClickDrone" @contextmenu.stop="onContextMenu">
 		<template #title>
 			<h3 class="no-select no-margin">Drones</h3>
 		</template>
@@ -171,11 +194,13 @@ function onContextMenu(event: PointerEvent, id?: number) {
 				</div>
 				<DroneItem
 					v-for="drone in drones"
-					@click.stop="onClickDrone($event, drone.id)"
+					:key="drone.id"
+					@click="onClickDrone($event, drone.id)"
 					@contextmenu.stop="onContextMenu($event, drone.id)"
 					class="drone"
 					:drone="drone"
 					:selected="selected.indexOf(drone.id) >= 0"
+					@ledChanged="(color) => $emit('ledChanged', drone.id, color)"
 				/>
 			</div>
 			<ContextMenu ref="menu" :model="menuItems" />
@@ -234,10 +259,6 @@ function onContextMenu(event: PointerEvent, id?: number) {
 
 .gps {
 	width: 18em;
-}
-
-.drone {
-	cursor: pointer;
 }
 
 .drone[selected='true'] {

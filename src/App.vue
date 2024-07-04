@@ -10,7 +10,7 @@ const rtkConnected = ref(false)
 
 <template>
 	<header>
-		<div class="logo">
+		<div class="no-select logo">
 			<RouterLink to="/">
 				<img src="/logo.png" />
 			</RouterLink>
@@ -26,7 +26,7 @@ const rtkConnected = ref(false)
 	</header>
 
 	<RouterView />
-	<Toast position="bottom-right" />
+	<Toast position="top-right" />
 </template>
 
 <style scoped>

@@ -1,12 +1,26 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { GPSType, type DroneInfo } from '@/api'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import ColorPicker from 'primevue/colorpicker'
+import { DroneStatus, GPSType, type ColorInfo, type DroneInfo } from '@/api'
 
-defineProps<{
+const props = defineProps<{
 	drone: DroneInfo
 }>()
 
+const emit = defineEmits<{
+	(e: 'ledChanged', color: ColorInfo): void
+}>()
+
 const now = ref(Date.now())
+const picker = ref<InstanceType<typeof ColorPicker>>()
+const droneLedColor = computed({
+	get(): ColorInfo {
+		return props.drone.led
+	},
+	set(value: ColorInfo) {
+		emit('ledChanged', value)
+	},
+})
 
 function formatLastActivate(ts: number): string {
 	let dur = now.value - ts
@@ -57,10 +71,13 @@ onBeforeUnmount(() => {
 			>)
 		</div>
 		<b class="last-activate">{{ formatLastActivate(drone.lastActivate) }}</b>
-		<div
+		<ColorPicker
+			ref="picker"
 			class="led"
-			:style="{ '--led-color': `rgb(${drone.led.r},${drone.led.g},${drone.led.b})` }"
-		></div>
+			format="rgb"
+			:disabled="drone.status === DroneStatus.NONE"
+			v-model="droneLedColor"
+		/>
 	</div>
 </template>
 
@@ -170,8 +187,6 @@ onBeforeUnmount(() => {
 }
 
 .led {
-	width: 1.2rem;
-	height: 1.2rem;
 	border-radius: 0.2rem;
 	transition: 0.5s background-color ease-out;
 	background-color: var(--led-color);
