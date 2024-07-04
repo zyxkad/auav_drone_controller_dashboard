@@ -82,8 +82,8 @@ h4 {
 	height: 100%;
 	grid-gap: 0.5rem;
 	grid-template:
-		". L C M ." 3rem
-		"S R A T E" 3rem
+		'. L C M .' 3rem
+		'S R A T E' 3rem
 		/ auto auto auto auto auto;
 	font-family: monospace;
 }
@@ -118,5 +118,4 @@ h4 {
 .errors {
 	grid-area: E;
 }
-
 </style>

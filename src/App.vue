@@ -6,7 +6,6 @@ import Toast from 'primevue/toast'
 
 const loraConnected = ref(false)
 const rtkConnected = ref(false)
-
 </script>
 
 <template>

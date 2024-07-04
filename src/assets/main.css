@@ -33,3 +33,7 @@
 .no-margin {
 	margin: 0;
 }
+
+.no-select {
+	user-select: none;
+}
