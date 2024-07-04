@@ -2,6 +2,7 @@
 import { ref, reactive } from 'vue'
 import Card from 'primevue/card'
 import ContextMenu from 'primevue/contextmenu'
+import type { MenuItem } from 'primevue/menuitem'
 import DroneItem from './DroneItem.vue'
 import type { DroneInfo } from '@/api'
 
@@ -13,11 +14,35 @@ const menu = ref<InstanceType<typeof ContextMenu>>()
 
 const selected = reactive<number[]>([])
 
-function selectedOrAll(label: string): () => string {
-	return () => (selected.length > 0 ? label : label + ' All')
+function doHome(): void {
+	// TODO
 }
 
-const globalItems = [
+function doLand(): void {
+	// TODO
+}
+
+function doDisarm(): void {
+	// TODO
+}
+
+function doSleep(): void {
+	// TODO
+}
+
+function doWakeup(): void {
+	// TODO
+}
+
+function doControlLight(): void {
+	// TODO
+}
+
+function doCopyGPS(): void {
+	// TODO
+}
+
+const globalItems: MenuItem[] = [
 	{ label: 'Home All', icon: 'pi pi-home', command: doHome },
 	{ label: 'Land All', icon: 'pi pi-cloud-download', command: doLand },
 	{ label: 'Disarm All', icon: 'pi pi-ban', command: doDisarm },
@@ -27,7 +52,7 @@ const globalItems = [
 	{ label: 'Copy All GPS', icon: 'pi pi-globe', command: doCopyGPS },
 ]
 
-const individualItems = [
+const individualItems: MenuItem[] = [
 	{
 		label: 'Actions',
 		icon: 'pi pi-bars',
@@ -43,16 +68,16 @@ const individualItems = [
 	{ label: 'Copy GPS', icon: 'pi pi-globe', command: doCopyGPS },
 ]
 
-const groupItems = [
+const groupItems: MenuItem[] = [
 	{
 		label: 'Actions',
 		icon: 'pi pi-bars',
 		items: [
-			{ label: 'Home Selected', icon: 'pi pi-home',command: doHome },
-			{ label: 'Land Selected', icon: 'pi pi-cloud-download',command: doLand },
-			{ label: 'Disarm Selected', icon: 'pi pi-ban',command: doDisarm },
-			{ label: 'Sleep Selected', icon: 'pi pi-moon',command: doSleep },
-			{ label: 'Wakeup Selected', icon: 'pi pi-eye',command: doWakeup },
+			{ label: 'Home Selected', icon: 'pi pi-home', command: doHome },
+			{ label: 'Land Selected', icon: 'pi pi-cloud-download', command: doLand },
+			{ label: 'Disarm Selected', icon: 'pi pi-ban', command: doDisarm },
+			{ label: 'Sleep Selected', icon: 'pi pi-moon', command: doSleep },
+			{ label: 'Wakeup Selected', icon: 'pi pi-eye', command: doWakeup },
 		],
 	},
 	{ label: 'Control Selected Lights', icon: 'pi pi-sliders-v', command: doControlLight },
@@ -125,35 +150,6 @@ function onContextMenu(event: PointerEvent, id?: number) {
 	}
 	menu.value?.show(event)
 }
-
-function doHome(): void {
-	// TODO
-}
-
-function doLand(): void {
-	// TODO
-}
-
-function doDisarm(): void {
-	// TODO
-}
-
-function doSleep(): void {
-	// TODO
-}
-
-function doWakeup(): void {
-	// TODO
-}
-
-function doControlLight(): void {
-	// TODO
-}
-
-function doCopyGPS(): void {
-	// TODO
-}
-
 </script>
 
 <template>
