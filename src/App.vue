@@ -28,7 +28,7 @@ import Toast from 'primevue/toast'
 <style scoped>
 header {
 	position: absolute;
-	top: 0;
+	top: -4rem;
 	left: 0;
 	display: flex;
 	flex-direction: row;

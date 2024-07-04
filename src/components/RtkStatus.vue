@@ -30,7 +30,9 @@ watch(data, (info: RTKInfo | undefined) => {
 
 <template>
 	<Card>
-		<template #title> RTK Status </template>
+		<template #title>
+			<h3 class="no-margin">RTK Status</h3>
+		</template>
 		<template #content>
 			<div class="content">
 				<div>

@@ -65,6 +65,7 @@ export enum DroneStatus {
 	SLEEPING = 'SLEEPING',
 	ARMED = 'ARMED',
 	TAKENOFF = 'TAKENOFF',
+	ERROR = 'ERROR',
 }
 
 export enum GPSType {
@@ -77,6 +78,33 @@ export enum GPSType {
 	RTK_FIXED = 6,
 	STATIC = 7,
 	PPP = 8,
+}
+
+export namespace GPSType {
+	export function asString(typ: GPSType): string {
+		switch (typ) {
+			case GPSType.NO_GPS:
+				return 'N/A'
+			case GPSType.NO_FIX:
+				return 'NO_FIX'
+			case GPSType.FIX_2D:
+				return '2D_FIX'
+			case GPSType.FIX_3D:
+				return '3D_FIX'
+			case GPSType.DGPS:
+				return 'DGPS'
+			case GPSType.RTK_FLOAT:
+				return 'RTK_FLOAT'
+			case GPSType.RTK_FIXED:
+				return 'RTK_FIXED'
+			case GPSType.STATIC:
+				return 'STATIC'
+			case GPSType.PPP:
+				return 'PPP'
+			default:
+				return 'UNKNOWN_GPS_' + String(typ)
+		}
+	}
 }
 
 export interface GPSInfo {

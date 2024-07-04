@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSetupProcessStore } from '@/stores/setup'
+import DroneList from '@/components/DroneList.vue'
+import DroneStatus from '@/components/DroneStatus.vue'
 import LogBlock from '@/components/LogBlock.vue'
 import RtkStatus from '@/components/RtkStatus.vue'
 import * as api from '@/api/instance'
@@ -10,6 +12,105 @@ const router = useRouter()
 const setupProcess = useSetupProcessStore()
 
 const logBlk = ref<InstanceType<typeof LogBlock>>()
+
+const drones = reactive<DroneInfo[]>([
+	{
+		id: 123,
+		status: 'N/A',
+		battery: {
+			voltage: 17.123,
+			current: 99.876,
+			remaining: 0.5421,
+		},
+		gps: {
+			type: 5,
+			lat: 50.123456,
+			lon: 12.987654,
+			alt: 9876.54,
+		},
+		lastActivate: Date.now(),
+	},
+	{
+		id: 1,
+		status: 'READY',
+		battery: {
+			voltage: 17.123,
+			current: 99.876,
+			remaining: 0.5421,
+		},
+		gps: {
+			type: 5,
+			lat: 50.123456,
+			lon: 12.987654,
+			alt: 9876.54,
+		},
+		lastActivate: Date.now() + 3000,
+	},
+	{
+		id: 1,
+		status: 'SLEEPING',
+		battery: {
+			voltage: 17.123,
+			current: 99.876,
+			remaining: 0.5421,
+		},
+		gps: {
+			type: 5,
+			lat: 50.123456,
+			lon: 12.987654,
+			alt: 9876.54,
+		},
+		lastActivate: Date.now() + 3000,
+	},
+	{
+		id: 1,
+		status: 'ARMED',
+		battery: {
+			voltage: 17.123,
+			current: 99.876,
+			remaining: 0.5421,
+		},
+		gps: {
+			type: 5,
+			lat: 50.123456,
+			lon: 12.987654,
+			alt: 9876.54,
+		},
+		lastActivate: Date.now() + 3000,
+	},
+	{
+		id: 1,
+		status: 'TAKENOFF',
+		battery: {
+			voltage: 17.123,
+			current: 99.876,
+			remaining: 0.5421,
+		},
+		gps: {
+			type: 5,
+			lat: 50.123456,
+			lon: 12.987654,
+			alt: 9876.54,
+		},
+		lastActivate: Date.now() + 3000,
+	},
+	{
+		id: 1,
+		status: 'ERROR',
+		battery: {
+			voltage: 17.123,
+			current: 99.876,
+			remaining: 0.5421,
+		},
+		gps: {
+			type: 5,
+			lat: 50.123456,
+			lon: 12.987654,
+			alt: 9876.54,
+		},
+		lastActivate: Date.now() + 3000,
+	},
+])
 
 onMounted(() => {
 	let redirectPath = ''
@@ -31,6 +132,8 @@ onMounted(() => {
 <template>
 	<main id="main">
 		<RtkStatus class="rtk-status" />
+		<DroneStatus class="drone-status" :drones="drones" />
+		<DroneList class="drone-list" :drones="drones" />
 		<LogBlock ref="logBlk" class="log-block" />
 	</main>
 </template>
@@ -42,14 +145,23 @@ onMounted(() => {
 	padding-bottom: 1rem;
 	grid-gap: 0.5rem;
 	grid-template:
-		'a a r r' 10rem
-		'a a l l' auto
-		/ auto auto;
+		'd r' 10rem
+		'd l' auto
+		's l' 13rem
+		/ min(60%, 60rem) auto;
 }
 
 .rtk-status {
 	grid-area: r;
 	height: 10rem;
+}
+
+.drone-status {
+	grid-area: s;
+}
+
+.drone-list {
+	grid-area: d;
 }
 
 .log-block {

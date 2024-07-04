@@ -13,3 +13,11 @@ body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
+
+.p-card-body {
+	height: 100%;
+}
+
+.p-card-content {
+	height: 100%;
+}

@@ -1,9 +1,35 @@
 @import './base.css';
 
+@property --flash-out {
+	syntax: '<color>';
+	inherits: false;
+	initial-value: #0000;
+}
+
+@keyframes flash {
+	0% {
+		--flash-out: var(--flash-from);
+	}
+	50% {
+		--flash-out: var(--flash-to);
+	}
+	100% {
+		--flash-out: var(--flash-from);
+	}
+}
+
 #app {
-	max-width: 1280px;
+	position: absolute;
+	width: 100vw;
+	height: calc(100vh - 4rem);
+	top: 4rem;
+	left: 0;
 	padding: 2rem;
-	padding-top: 5rem;
+	padding-top: 1rem;
 
 	font-weight: normal;
+}
+
+.no-margin {
+	margin: 0;
 }
