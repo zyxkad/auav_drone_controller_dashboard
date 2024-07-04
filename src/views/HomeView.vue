@@ -25,6 +25,11 @@ const drones = reactive<DroneInfo[]>([
 			alt: 9876.54,
 		},
 		lastActivate: Date.now(),
+		led: {
+			r: 200,
+			g: 100,
+			b: 50,
+		},
 	},
 	{
 		id: 1,
@@ -41,6 +46,11 @@ const drones = reactive<DroneInfo[]>([
 			alt: 9876.54,
 		},
 		lastActivate: Date.now() + 3000,
+		led: {
+			r: 100,
+			g: 150,
+			b: 250,
+		},
 	},
 	{
 		id: 5,
@@ -57,6 +67,11 @@ const drones = reactive<DroneInfo[]>([
 			alt: 9876.54,
 		},
 		lastActivate: Date.now() + 3000,
+		led: {
+			r: 100,
+			g: 100,
+			b: 100,
+		},
 	},
 	{
 		id: 2,
@@ -73,6 +88,11 @@ const drones = reactive<DroneInfo[]>([
 			alt: 9876.54,
 		},
 		lastActivate: Date.now() + 3000,
+		led: {
+			r: 0,
+			g: 0,
+			b: 0,
+		},
 	},
 	{
 		id: 3,
@@ -89,6 +109,11 @@ const drones = reactive<DroneInfo[]>([
 			alt: 9876.54,
 		},
 		lastActivate: Date.now() + 3000,
+		led: {
+			r: 0,
+			g: 200,
+			b: 200,
+		},
 	},
 	{
 		id: 4,
@@ -105,6 +130,11 @@ const drones = reactive<DroneInfo[]>([
 			alt: 9876.54,
 		},
 		lastActivate: Date.now() + 3000,
+		led: {
+			r: 200,
+			g: 200,
+			b: 0,
+		},
 	},
 ])
 </script>
@@ -125,10 +155,10 @@ const drones = reactive<DroneInfo[]>([
 	padding-bottom: 1rem;
 	grid-gap: 0.5rem;
 	grid-template:
-		'd r' 10rem
-		'd l' auto
-		's l' 13rem
-		/ min(60%, 60rem) auto;
+		'd r r' 10rem
+		'd l l' auto
+		's l l' 13rem
+		/ min(60%, 60rem) auto auto;
 }
 
 .rtk-status {

@@ -120,10 +120,17 @@ export interface BatteryStat {
 	remaining: number // In %
 }
 
+export interface ColorInfo {
+	r: number
+	g: number
+	b: number
+}
+
 export interface DroneInfo {
 	status: DroneStatus
 	id: number
 	gps: GPSInfo
 	battery: BatteryStat
 	lastActivate: number // epoch in milliseconds
+	led: ColorInfo
 }

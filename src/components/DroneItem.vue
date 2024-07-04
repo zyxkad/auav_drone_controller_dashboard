@@ -48,7 +48,7 @@ onBeforeUnmount(() => {
 		<b class="status">{{ drone.status }}</b>
 		<div class="voltage">{{ drone.battery.voltage.toFixed(3) }}</div>
 		<div class="current">{{ drone.battery.current.toFixed(3) }}</div>
-		<b class="remaining">{{ (drone.battery.remaining * 100).toFixed(1) }}</b>
+		<b class="remaining">{{ Math.floor(drone.battery.remaining * 100) }}</b>
 		<b class="gps-type">{{ GPSType.asString(drone.gps.type) }}</b>
 		<div class="gps">
 			(<span>{{ drone.gps.lat.toFixed(5) }}</span
@@ -57,6 +57,10 @@ onBeforeUnmount(() => {
 			>)
 		</div>
 		<b class="last-activate">{{ formatLastActivate(drone.lastActivate) }}</b>
+		<div
+			class="led"
+			:style="{ '--led-color': `rgb(${drone.led.r},${drone.led.g},${drone.led.b})` }"
+		></div>
 	</div>
 </template>
 
@@ -73,6 +77,7 @@ onBeforeUnmount(() => {
 }
 
 .drone > * {
+	display: inline-block;
 	flex-shrink: 0;
 	margin-right: 0.5em;
 }
@@ -144,6 +149,7 @@ onBeforeUnmount(() => {
 
 .remaining {
 	width: 3em;
+	text-align: right;
 }
 
 .remaining::after {
@@ -157,5 +163,17 @@ onBeforeUnmount(() => {
 
 .gps {
 	width: 18em;
+}
+
+.last-activate {
+	width: 3rem;
+}
+
+.led {
+	width: 1.2rem;
+	height: 1.2rem;
+	border-radius: 0.2rem;
+	transition: 0.5s background-color ease-out;
+	background-color: var(--led-color);
 }
 </style>
