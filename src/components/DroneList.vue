@@ -5,7 +5,7 @@ import ContextMenu from 'primevue/contextmenu'
 import DroneItem from './DroneItem.vue'
 import type { DroneInfo } from '@/api'
 
-defineProps<{
+const props = defineProps<{
 	drones: DroneInfo[]
 }>()
 
@@ -17,15 +17,51 @@ function selectedOrAll(label: string): () => string {
 	return () => (selected.length > 0 ? label : label + ' All')
 }
 
-const menuItems = ref([
-	{ label: selectedOrAll('Home'), icon: 'pi pi-home' },
-	{ label: selectedOrAll('Land'), icon: 'pi pi-cloud-download' },
-	{ label: selectedOrAll('Disarm'), icon: 'pi pi-ban' },
-	{ label: selectedOrAll('Sleep'), icon: 'pi pi-moon' },
-	{ label: selectedOrAll('Wakeup'), icon: 'pi pi-eye' },
-	{ label: selectedOrAll('Control Lights'), icon: 'pi pi-sliders-v' },
-	{ label: selectedOrAll('Copy GPS'), icon: 'pi pi-globe' },
-])
+const globalItems = [
+	{ label: 'Home All', icon: 'pi pi-home', command: doHome },
+	{ label: 'Land All', icon: 'pi pi-cloud-download', command: doLand },
+	{ label: 'Disarm All', icon: 'pi pi-ban', command: doDisarm },
+	{ label: 'Sleep All', icon: 'pi pi-moon', command: doSleep },
+	{ label: 'Wakeup All', icon: 'pi pi-eye', command: doWakeup },
+	{ label: 'Control All Lights', icon: 'pi pi-sliders-v', command: doControlLight },
+	{ label: 'Copy All GPS', icon: 'pi pi-globe', command: doCopyGPS },
+]
+
+const individualItems = [
+	{
+		label: 'Actions',
+		icon: 'pi pi-bars',
+		items: [
+			{ label: 'Home', icon: 'pi pi-home', command: doHome },
+			{ label: 'Land', icon: 'pi pi-cloud-download', command: doLand },
+			{ label: 'Disarm', icon: 'pi pi-ban', command: doDisarm },
+			{ label: 'Sleep', icon: 'pi pi-moon', command: doSleep },
+			{ label: 'Wakeup', icon: 'pi pi-eye', command: doWakeup },
+		],
+	},
+	{ label: 'Control Lights', icon: 'pi pi-sliders-v', command: doControlLight },
+	{ label: 'Copy GPS', icon: 'pi pi-globe', command: doCopyGPS },
+]
+
+const groupItems = [
+	{
+		label: 'Actions',
+		icon: 'pi pi-bars',
+		items: [
+			{ label: 'Home Selected', icon: 'pi pi-home',command: doHome },
+			{ label: 'Land Selected', icon: 'pi pi-cloud-download',command: doLand },
+			{ label: 'Disarm Selected', icon: 'pi pi-ban',command: doDisarm },
+			{ label: 'Sleep Selected', icon: 'pi pi-moon',command: doSleep },
+			{ label: 'Wakeup Selected', icon: 'pi pi-eye',command: doWakeup },
+		],
+	},
+	{ label: 'Control Selected Lights', icon: 'pi pi-sliders-v', command: doControlLight },
+	{ label: 'Copy Selected GPS', icon: 'pi pi-globe', command: doCopyGPS },
+]
+
+const menuItems = ref(globalItems)
+
+let lastClicked: number | null = null
 
 function onClickDrone(event: PointerEvent, id?: number) {
 	menu.value?.hide()
@@ -33,14 +69,26 @@ function onClickDrone(event: PointerEvent, id?: number) {
 		return
 	}
 	if (id === undefined) {
-		if (!event.metaKey) {
+		if (event.shiftKey) {
+		} else if (!event.metaKey) {
 			selected.splice(0)
+			lastClicked = null
 		}
 		return
 	}
 	if (!event.metaKey) {
 		selected.splice(0)
-		selected.push(id)
+		if (!event.shiftKey || lastClicked === null) {
+			selected.push(id)
+		} else if (lastClicked !== id) {
+			const lastIndex = props.drones.findIndex((d) => d.id === lastClicked)
+			const curIndex = props.drones.findIndex((d) => d.id === id)
+			const lowIndex = Math.min(curIndex, lastIndex)
+			const highIndex = Math.max(curIndex, lastIndex)
+			for (let i = lowIndex; i <= highIndex; i++) {
+				selected.push(props.drones[i].id)
+			}
+		}
 	} else {
 		let i = selected.indexOf(id)
 		if (i >= 0) {
@@ -49,18 +97,63 @@ function onClickDrone(event: PointerEvent, id?: number) {
 			selected.push(id)
 		}
 	}
+	lastClicked = id
 }
 
 function onContextMenu(event: PointerEvent, id?: number) {
-	if (id !== undefined) {
+	if (id === undefined) {
+		if (selected.length === 1) {
+			selected.splice(0)
+		}
+	} else {
 		let i = selected.indexOf(id)
 		if (i < 0) {
 			selected.splice(0)
 			selected.push(id)
 		}
+		lastClicked = id
+	}
+	switch (selected.length) {
+		case 0:
+			menuItems.value = globalItems
+			break
+		case 1:
+			menuItems.value = individualItems
+			break
+		default:
+			menuItems.value = groupItems
 	}
 	menu.value?.show(event)
 }
+
+function doHome(): void {
+	// TODO
+}
+
+function doLand(): void {
+	// TODO
+}
+
+function doDisarm(): void {
+	// TODO
+}
+
+function doSleep(): void {
+	// TODO
+}
+
+function doWakeup(): void {
+	// TODO
+}
+
+function doControlLight(): void {
+	// TODO
+}
+
+function doCopyGPS(): void {
+	// TODO
+}
+
 </script>
 
 <template>
