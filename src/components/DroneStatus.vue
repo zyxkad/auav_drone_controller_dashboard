@@ -85,6 +85,7 @@ h4 {
 		". L C M ." 3rem
 		"S R A T E" 3rem
 		/ auto auto auto auto auto;
+	font-family: monospace;
 }
 
 .status-box > div {

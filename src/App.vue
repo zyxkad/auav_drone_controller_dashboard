@@ -1,7 +1,12 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import Button from 'primevue/button'
 import Toast from 'primevue/toast'
+
+const loraConnected = ref(false)
+const rtkConnected = ref(false)
+
 </script>
 
 <template>
@@ -13,10 +18,10 @@ import Toast from 'primevue/toast'
 		</div>
 		<nav class="head-nav">
 			<RouterLink to="/setup/lora">
-				<Button severity="secondary" label="Setup Lora" />
+				<Button :severity="loraConnected ? 'secondary' : 'primary'" label="Setup Lora" />
 			</RouterLink>
 			<RouterLink to="/setup/rtk">
-				<Button severity="secondary" label="Setup RTK" />
+				<Button :severity="rtkConnected ? 'secondary' : 'primary'" label="Setup RTK" />
 			</RouterLink>
 		</nav>
 	</header>

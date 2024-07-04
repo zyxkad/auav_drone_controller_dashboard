@@ -1,15 +1,10 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useSetupProcessStore } from '@/stores/setup'
 import DroneList from '@/components/DroneList.vue'
 import DroneStatus from '@/components/DroneStatus.vue'
 import LogBlock from '@/components/LogBlock.vue'
 import RtkStatus from '@/components/RtkStatus.vue'
 import * as api from '@/api/instance'
-
-const router = useRouter()
-const setupProcess = useSetupProcessStore()
 
 const logBlk = ref<InstanceType<typeof LogBlock>>()
 
@@ -111,22 +106,6 @@ const drones = reactive<DroneInfo[]>([
 		lastActivate: Date.now() + 3000,
 	},
 ])
-
-onMounted(() => {
-	let redirectPath = ''
-	const { lora: isLoraSetted, rtk: isRtkSetted } = setupProcess
-	if (!isRtkSetted) {
-		redirectPath = '/setup/rtk'
-		setupProcess.rtk = true
-	}
-	if (!isLoraSetted) {
-		redirectPath = '/setup/lora?next=' + redirectPath
-		setupProcess.lora = true
-	}
-	if (redirectPath) {
-		router.push(redirectPath)
-	}
-})
 </script>
 
 <template>
