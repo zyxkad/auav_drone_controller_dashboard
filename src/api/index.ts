@@ -134,3 +134,11 @@ export interface DroneInfo {
 	lastActivate: number // epoch in milliseconds
 	led: ColorInfo
 }
+
+export interface SatelliteConfig {
+	GPS: boolean
+	GLONASS: boolean
+	Galileo: boolean
+	BeiDou: boolean
+	PVT: boolean
+}

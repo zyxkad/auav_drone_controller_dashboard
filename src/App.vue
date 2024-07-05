@@ -22,6 +22,9 @@ const rtkConnected = ref(false)
 			<RouterLink to="/setup/rtk">
 				<Button :severity="rtkConnected ? 'secondary' : 'primary'" label="Setup RTK" />
 			</RouterLink>
+			<RouterLink to="/setup/satellite">
+				<Button severity="info" label="Satellite" />
+			</RouterLink>
 		</nav>
 	</header>
 

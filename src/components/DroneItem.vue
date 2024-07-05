@@ -74,6 +74,7 @@ onBeforeUnmount(() => {
 		<ColorPicker
 			ref="picker"
 			class="led"
+			:class="drone.status === DroneStatus.NONE ? 'not-allowed' : null"
 			format="rgb"
 			:disabled="drone.status === DroneStatus.NONE"
 			v-model="droneLedColor"

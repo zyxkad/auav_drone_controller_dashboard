@@ -37,3 +37,15 @@
 .no-select {
 	user-select: none;
 }
+
+.not-allowed {
+	cursor: not-allowed;
+}
+
+a {
+	color: var(--p-text-muted-color);
+}
+
+a:hover {
+	color: var(--p-text-muted-hover-color);
+}

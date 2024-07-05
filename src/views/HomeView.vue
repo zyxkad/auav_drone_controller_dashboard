@@ -12,7 +12,7 @@ const logBlk = ref<InstanceType<typeof LogBlock>>()
 const drones = reactive<DroneInfo[]>([
 	{
 		id: 123,
-		status: 'N/A',
+		status: 'N/A' as any,
 		battery: {
 			voltage: 17.123,
 			current: 99.876,
@@ -33,7 +33,7 @@ const drones = reactive<DroneInfo[]>([
 	},
 	{
 		id: 1,
-		status: 'READY',
+		status: 'READY' as any,
 		battery: {
 			voltage: 17.123,
 			current: 99.876,
@@ -54,7 +54,7 @@ const drones = reactive<DroneInfo[]>([
 	},
 	{
 		id: 5,
-		status: 'SLEEPING',
+		status: 'SLEEPING' as any,
 		battery: {
 			voltage: 17.123,
 			current: 99.876,
@@ -75,7 +75,7 @@ const drones = reactive<DroneInfo[]>([
 	},
 	{
 		id: 2,
-		status: 'ARMED',
+		status: 'ARMED' as any,
 		battery: {
 			voltage: 17.123,
 			current: 99.876,
@@ -96,7 +96,7 @@ const drones = reactive<DroneInfo[]>([
 	},
 	{
 		id: 3,
-		status: 'TAKENOFF',
+		status: 'TAKENOFF' as any,
 		battery: {
 			voltage: 17.123,
 			current: 99.876,
@@ -117,7 +117,7 @@ const drones = reactive<DroneInfo[]>([
 	},
 	{
 		id: 4,
-		status: 'ERROR',
+		status: 'ERROR' as any,
 		battery: {
 			voltage: 17.123,
 			current: 99.876,

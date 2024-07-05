@@ -52,7 +52,7 @@ onMounted(() => {
 
 <template>
 	<Card class="setup-card">
-		<template #title> Setup Lora </template>
+		<template #title>Setup Lora</template>
 		<template #content>
 			<form v-focustrap @submit.prevent="submitLoraSetup">
 				<div class="option-box">

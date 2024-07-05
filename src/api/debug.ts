@@ -6,6 +6,7 @@ import {
 	type LoraConfig,
 	type RTKConfig,
 	type RTKInfo,
+	type SatelliteConfig,
 } from './index'
 
 async function randomSleep(min: number, max?: number): Promise<number> {
@@ -78,4 +79,22 @@ const rtkStatus: RTKInfo = {
 export async function getRtkStatus(): Promise<RTKInfo> {
 	await randomSleep(0.1, 0.5)
 	return rtkStatus
+}
+
+var satelliteCfg: SatelliteConfig = {
+	GPS: true,
+	GLONASS: true,
+	Galileo: true,
+	BeiDou: true,
+	PVT: false,
+}
+
+export async function getSatelliteConfig(): Promise<SatelliteConfig> {
+	return satelliteCfg
+}
+
+export async function updateSatelliteConfig(config: SatelliteConfig): Promise<RespStatus> {
+	await randomSleep(0.1, 5)
+	satelliteCfg = config
+	return RespStatus.OK
 }

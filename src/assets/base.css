@@ -21,3 +21,7 @@ body {
 .p-card-content {
 	height: 100%;
 }
+
+.p-disabled {
+	cursor: not-allowed;
+}

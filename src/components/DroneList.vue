@@ -47,10 +47,14 @@ function doControlLight(): void {
 async function doCopyGPS(): Promise<void> {
 	let data = ''
 	let count = 0
-	const drones = selected.length?selected.map((id) => props.drones.find((d) => d.id === id)):props.drones
+	const drones = selected.length
+		? selected.map((id) => props.drones.find((d) => d.id === id))
+		: props.drones
 	for (const drone of drones) {
-		data += `{ id: ${drone.id}, lat: ${drone.gps.lat}, lon: ${drone.gps.lon}, alt: ${drone.gps.alt}, typ: ${drone.gps.type} }\n`
-		count++
+		if (drone) {
+			data += `{ id:${drone.id}, lat:${drone.gps.lat}, lon:${drone.gps.lon}, alt:${drone.gps.alt}, typ:${drone.gps.type} }\n`
+			count++
+		}
 	}
 	await navigator.clipboard.writeText(data)
 	toast.add({
@@ -79,10 +83,10 @@ const individualItems: MenuItem[] = [
 			{ label: 'Home', icon: 'pi pi-home', command: doHome },
 			{ label: 'Land', icon: 'pi pi-cloud-download', command: doLand },
 			{ label: 'Disarm', icon: 'pi pi-ban', command: doDisarm },
-			{ label: 'Sleep', icon: 'pi pi-moon', command: doSleep },
-			{ label: 'Wakeup', icon: 'pi pi-eye', command: doWakeup },
 		],
 	},
+	{ label: 'Sleep', icon: 'pi pi-moon', command: doSleep },
+	{ label: 'Wakeup', icon: 'pi pi-eye', command: doWakeup },
 	{ label: 'Control Lights', icon: 'pi pi-sliders-v', command: doControlLight },
 	{ label: 'Copy GPS', icon: 'pi pi-globe', command: doCopyGPS },
 ]
@@ -95,10 +99,10 @@ const groupItems: MenuItem[] = [
 			{ label: 'Home Selected', icon: 'pi pi-home', command: doHome },
 			{ label: 'Land Selected', icon: 'pi pi-cloud-download', command: doLand },
 			{ label: 'Disarm Selected', icon: 'pi pi-ban', command: doDisarm },
-			{ label: 'Sleep Selected', icon: 'pi pi-moon', command: doSleep },
-			{ label: 'Wakeup Selected', icon: 'pi pi-eye', command: doWakeup },
 		],
 	},
+	{ label: 'Sleep Selected', icon: 'pi pi-moon', command: doSleep },
+	{ label: 'Wakeup Selected', icon: 'pi pi-eye', command: doWakeup },
 	{ label: 'Control Selected Lights', icon: 'pi pi-sliders-v', command: doControlLight },
 	{ label: 'Copy Selected GPS', icon: 'pi pi-globe', command: doCopyGPS },
 ]

@@ -1,7 +1,14 @@
 import axios from 'axios'
 
 export * from './index'
-import { RespStatus, type Device, type LoraConfig, type RTKConfig, type RTKInfo } from './index'
+import {
+	RespStatus,
+	type Device,
+	type LoraConfig,
+	type RTKConfig,
+	type RTKInfo,
+	type SatelliteConfig,
+} from './index'
 
 interface AvaliableDevicesResp {
 	devices: Device[]
@@ -32,6 +39,18 @@ export async function connectedRtkPort(): Promise<RTKConfig | null> {
 export async function connectRtkPort(config: RTKConfig): Promise<RespStatus> {
 	return await axios
 		.post(`/api/rtk/connect`, config)
+		.then(() => RespStatus.OK)
+		.catch(RespStatus.fromError)
+}
+
+export async function getSatelliteConfig(): Promise<SatelliteConfig> {
+	const resp = await axios.get<SatelliteConfig>(`/api/satellite/config`)
+	return resp.data
+}
+
+export async function updateSatelliteConfig(config: SatelliteConfig): Promise<RespStatus> {
+	return await axios
+		.post(`/api/satellite/config`, config)
 		.then(() => RespStatus.OK)
 		.catch(RespStatus.fromError)
 }

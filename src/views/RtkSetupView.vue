@@ -7,6 +7,7 @@ import Select from 'primevue/select'
 import InputNumber from 'primevue/inputnumber'
 import ToggleSwitch from 'primevue/toggleswitch'
 import { useToast } from 'primevue/usetoast'
+import TransitionExpand from '@/components/TransitionExpand.vue'
 import * as api from '@/api/instance'
 import { RespStatus, type Device, type RTKConfig } from '@/api'
 
@@ -60,7 +61,7 @@ onMounted(() => {
 
 <template>
 	<Card class="setup-card">
-		<template #title> Setup RTK </template>
+		<template #title>Setup RTK</template>
 		<template #content>
 			<form v-focustrap @submit.prevent="submitRTKSetup">
 				<div class="option-box">
@@ -112,28 +113,35 @@ onMounted(() => {
 					<label>Survey-In</label>
 					<ToggleSwitch v-model="rtkConfig.surveyIn" />
 				</div>
-				<div class="option-box">
-					<label>SVIN Duration</label>
-					<InputNumber
-						:disabled="!rtkConfig.surveyIn"
-						class="option-input"
-						v-model="rtkConfig.surveyInDur"
-						placeholder="Survey-In Duration"
-						suffix="s"
-						:min="0"
-					/>
-				</div>
-				<div class="option-box">
-					<label>SVIN Accuracy</label>
-					<InputNumber
-						:disabled="!rtkConfig.surveyIn"
-						class="option-input"
-						v-model="rtkConfig.surveyInAcc"
-						placeholder="Survey-In Accuracy"
-						suffix="m"
-						:minFractionDigits="1"
-						:maxFractionDigits="4"
-					/>
+				<TransitionExpand>
+					<div v-show="rtkConfig.surveyIn">
+						<div class="option-box">
+							<label>SVIN Duration</label>
+							<InputNumber
+								:disabled="!rtkConfig.surveyIn"
+								class="option-input"
+								v-model="rtkConfig.surveyInDur"
+								placeholder="Survey-In Duration"
+								suffix="s"
+								:min="0"
+							/>
+						</div>
+						<div class="option-box">
+							<label>SVIN Accuracy</label>
+							<InputNumber
+								:disabled="!rtkConfig.surveyIn"
+								class="option-input"
+								v-model="rtkConfig.surveyInAcc"
+								placeholder="Survey-In Accuracy"
+								suffix="m"
+								:minFractionDigits="1"
+								:maxFractionDigits="4"
+							/>
+						</div>
+					</div>
+				</TransitionExpand>
+				<div>
+					<RouterLink to="/setup/satellite">Setup Satellite</RouterLink>
 				</div>
 				<div class="button-box">
 					<Button type="submit" label="Submit" :loading="submitting" />
@@ -159,6 +167,7 @@ onMounted(() => {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
+	justify-content: space-between;
 	width: 100%;
 	height: 3rem;
 	margin-bottom: 1rem;
