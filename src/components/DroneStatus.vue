@@ -86,6 +86,7 @@ h4 {
 		'S R A T E' 3rem
 		/ auto auto auto auto auto;
 	font-family: monospace;
+	white-space: nowrap;
 }
 
 .status-box > div {

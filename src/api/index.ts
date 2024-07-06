@@ -57,6 +57,7 @@ export interface RTKInfo {
 	status: RTKStatus
 	svinDur: number
 	svinAcc: number
+	satelliteNum: number
 }
 
 export enum DroneStatus {

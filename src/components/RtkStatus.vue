@@ -9,6 +9,7 @@ const rtkInfo = reactive<RTKInfo>({
 	status: RTKStatus.NONE,
 	svinDur: 0,
 	svinAcc: 0,
+	satelliteNum: 19,
 })
 
 // TODO: should use socket.io push
@@ -22,9 +23,7 @@ watch(data, (info: RTKInfo | undefined) => {
 	if (!info) {
 		return
 	}
-	rtkInfo.status = info.status
-	rtkInfo.svinDur = info.svinDur
-	rtkInfo.svinAcc = info.svinAcc
+	Object.assign(rtkInfo, info)
 })
 </script>
 
@@ -34,18 +33,26 @@ watch(data, (info: RTKInfo | undefined) => {
 			<h3 class="no-margin">RTK Status</h3>
 		</template>
 		<template #content>
-			<div class="content">
-				<div>
-					<b>Status</b>
-					<span>{{ rtkInfo.status }}</span>
+			<div class="content-box">
+				<div class="content content-left">
+					<div>
+						<b>Status</b>
+						<span>{{ rtkInfo.status }}</span>
+					</div>
+					<div>
+						<b>SvIn Duration</b>
+						<span>{{ rtkInfo.svinDur }}s</span>
+					</div>
+					<div>
+						<b>Accuracy</b>
+						<span>{{ rtkInfo.svinAcc.toFixed(2) }}m</span>
+					</div>
 				</div>
-				<div>
-					<b>SvIn Duration</b>
-					<span>{{ rtkInfo.svinDur }}s</span>
-				</div>
-				<div>
-					<b>Accuracy</b>
-					<span>{{ rtkInfo.svinAcc.toFixed(2) }}m</span>
+				<div class="content right">
+					<div>
+						<b>Base Satellite</b>
+						<span>{{ rtkInfo.satelliteNum }}</span>
+					</div>
 				</div>
 			</div>
 		</template>
@@ -53,6 +60,11 @@ watch(data, (info: RTKInfo | undefined) => {
 </template>
 
 <style scoped>
+.content-box {
+	display: flex;
+	flex-direction: row;
+}
+
 .content {
 	display: flex;
 	flex-direction: column;

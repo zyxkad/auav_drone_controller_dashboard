@@ -74,6 +74,7 @@ const rtkStatus: RTKInfo = {
 	status: RTKStatus.NONE,
 	svinDur: 0,
 	svinAcc: 0,
+	satelliteNum: 12,
 }
 
 export async function getRtkStatus(): Promise<RTKInfo> {
