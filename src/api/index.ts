@@ -1,20 +1,46 @@
 import { AxiosError } from 'axios'
 
-export enum RespStatus {
-	OK = 200,
-	NOT_FOUND = 404,
-	CONFLICT = 409,
-}
+export class RespStatus {
+	static readonly OK = new RespStatus(200)
+	static readonly NOT_FOUND = new RespStatus(404, 'Resource not found')
+	static readonly CONFLICT = new RespStatus(409, 'Operition conflicts')
 
-export namespace RespStatus {
-	export async function fromError(err: unknown) {
+	readonly code: number
+	readonly message: string
+	constructor(code: number, message?: string) {
+		this.code = code
+		this.message = message || ''
+	}
+
+	get ok(): boolean {
+		return 100 <= this.code && this.code < 400
+	}
+
+	toString(): string {
+		let s = String(this.code)
+		if (this.message) {
+			s += ': ' + this.message
+		}
+		return s
+	}
+
+	static fromError(err: unknown) {
 		if (err instanceof AxiosError) {
 			if (err.response) {
-				switch (err.response.status) {
+				const code = err.response.status
+				switch (code) {
 					case 404:
 						return RespStatus.NOT_FOUND
 					case 409:
 						return RespStatus.CONFLICT
+					default:
+						if (400 <= code && code < 600) {
+							const { data } = err.response
+							if (typeof data !== 'object') {
+								return new RespStatus(code, String(data))
+							}
+							return new RespStatus(code, data.message || data.error)
+						}
 				}
 			}
 		}
@@ -32,19 +58,13 @@ export type LoraConfig = {
 	baudRate: number
 }
 
-export type RTKConfig = {
+export interface RTKConfig {
 	device: string
 	baudRate: number
-} & (
-	| {
-			surveyIn: false
-	  }
-	| {
-			surveyIn: true
-			surveyInDur: number
-			surveyInAcc: number
-	  }
-)
+	surveyIn: boolean
+	surveyInDur: number
+	surveyInAcc: number
+}
 
 export enum RTKStatus {
 	NONE = 'N/A',
@@ -128,8 +148,8 @@ export interface ColorInfo {
 }
 
 export interface DroneInfo {
-	status: DroneStatus
 	id: number
+	status: DroneStatus
 	gps: GPSInfo
 	battery: BatteryStat
 	lastActivate: number // epoch in milliseconds

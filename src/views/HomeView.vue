@@ -6,6 +6,7 @@ import LogBlock from '@/components/LogBlock.vue'
 import RtkStatus from '@/components/RtkStatus.vue'
 import type { ColorInfo, DroneInfo } from '@/api'
 import * as api from '@/api/instance'
+import { onAwsEvent } from '@/stores/aws'
 
 const logBlk = ref<InstanceType<typeof LogBlock>>()
 
@@ -141,6 +142,10 @@ const drones = reactive<DroneInfo[]>([
 function onLedChanged(drone: number, color: ColorInfo) {
 	console.log('on led changed for:', drone, color)
 }
+
+onAwsEvent('drone-info', (event: MessageEvent<DroneInfo>) => {
+	console.log('drone-info', event.data)
+})
 </script>
 
 <template>

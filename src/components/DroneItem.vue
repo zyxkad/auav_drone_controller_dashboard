@@ -64,6 +64,7 @@ onBeforeUnmount(() => {
 		<div class="current">{{ drone.battery.current.toFixed(3) }}</div>
 		<b class="remaining">{{ Math.floor(drone.battery.remaining * 100) }}</b>
 		<b class="gps-type">{{ GPSType.asString(drone.gps.type) }}</b>
+		<!-- TODO: Show visible satellites -->
 		<div class="gps">
 			(<span>{{ drone.gps.lat.toFixed(5) }}</span
 			>, <span>{{ drone.gps.lon.toFixed(5) }}</span
@@ -71,6 +72,7 @@ onBeforeUnmount(() => {
 			>)
 		</div>
 		<b class="last-activate">{{ formatLastActivate(drone.lastActivate) }}</b>
+		<!-- TODO: Only need a few colors and flash for LED control -->
 		<ColorPicker
 			ref="picker"
 			class="led"

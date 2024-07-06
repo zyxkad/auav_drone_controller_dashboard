@@ -6,7 +6,7 @@ import Card from 'primevue/card'
 import Select from 'primevue/select'
 import { useToast } from 'primevue/usetoast'
 import * as api from '@/api/instance'
-import { RespStatus, type Device, type LoraConfig } from '@/api'
+import type { RespStatus, Device, LoraConfig } from '@/api'
 
 const props = defineProps<{
 	nextURL?: string
@@ -38,9 +38,16 @@ async function submitLoraSetup(): Promise<void> {
 		baudRate: loraConfig.baudRate,
 	})
 	submitting.value = false
-	if (res === RespStatus.OK) {
+	if (res.ok) {
 		router.push(props.nextURL || '/')
+		return
 	}
+	toast.add({
+		severity: 'error',
+		summary: 'Cannot setup RTK',
+		detail: res.toString(),
+		life: 5000,
+	})
 }
 
 onMounted(() => {

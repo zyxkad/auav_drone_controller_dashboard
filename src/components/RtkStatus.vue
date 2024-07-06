@@ -3,27 +3,30 @@ import { reactive, watch } from 'vue'
 import { useRequest } from 'vue-request'
 import Card from 'primevue/card'
 import { RTKStatus, type RTKInfo } from '@/api'
-import * as api from '@/api/instance'
+import { onAwsEvent } from '@/stores/aws'
 
 const rtkInfo = reactive<RTKInfo>({
 	status: RTKStatus.NONE,
 	svinDur: 0,
 	svinAcc: 0,
-	satelliteNum: 19,
+	satelliteNum: -1,
 })
 
-// TODO: should use socket.io push
-const { data, error, loading } = useRequest(() => api.getRtkStatus(), {
-	pollingInterval: 1000,
-	loadingDelay: 500,
-	loadingKeep: 2000,
+onAwsEvent<RTKInfo>('rtk-status', ({ data }) => {
+	Object.assign(rtkInfo, data)
 })
 
-watch(data, (info: RTKInfo | undefined) => {
-	if (!info) {
-		return
-	}
-	Object.assign(rtkInfo, info)
+interface RTKSurveyInData {
+	dur: number
+	acc: number
+	valid: boolean
+	active: boolean
+}
+
+onAwsEvent<RTKSurveyInData>('rtk-survey-in', ({ data }) => {
+	rtkInfo.svinDur = data.dur
+	rtkInfo.svinAcc = data.acc
+	console.log('survey-in', data)
 })
 </script>
 

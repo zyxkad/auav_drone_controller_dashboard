@@ -9,7 +9,7 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import { useToast } from 'primevue/usetoast'
 import TransitionExpand from '@/components/TransitionExpand.vue'
 import * as api from '@/api/instance'
-import { RespStatus, type Device, type RTKConfig } from '@/api'
+import type { RespStatus, Device, RTKConfig } from '@/api'
 
 const props = defineProps<{
 	nextURL?: string
@@ -47,14 +47,40 @@ async function submitRTKSetup(): Promise<void> {
 		surveyInAcc: rtkConfig.surveyInAcc,
 	})
 	submitting.value = false
-	if (res === RespStatus.OK) {
+	if (res.ok) {
 		router.push(props.nextURL || '/')
+		return
 	}
+	toast.add({
+		severity: 'error',
+		summary: 'Cannot setup RTK',
+		detail: res.toString(),
+		life: 5000,
+	})
 }
 
 onMounted(() => {
-	api.getAvaliableDevices().then((devices) => {
-		avaliableDevices.value = devices
+	Promise.all([
+		api.connectedRtkPort().then((config) => {
+			console.log('rtk config:', config)
+			if (config) {
+				rtkConfig.baudRate = config.baudRate
+				rtkConfig.surveyIn = config.surveyIn
+				rtkConfig.surveyInDur = config.surveyInDur
+				rtkConfig.surveyInAcc = config.surveyInAcc
+			}
+			return config
+		}),
+		api.getAvaliableDevices().then((devices) => {
+			avaliableDevices.value = devices
+		}),
+	]).then(([config]) => {
+		if (config && avaliableDevices.value) {
+			const i = avaliableDevices.value.findIndex(({ name }) => name === config.device)
+			if (i >= 0) {
+				rtkConfig.device = i
+			}
+		}
 	})
 })
 </script>
@@ -81,15 +107,17 @@ onMounted(() => {
 						<template #value="slotProps">
 							<template v-if="avaliableDevices === null"> Loading ... </template>
 							<template v-else>
-								{{ avaliableDevices[slotProps.value].name }} ({{
-									avaliableDevices[slotProps.value].description
-								}})
+								{{ avaliableDevices[slotProps.value].name
+								}}<span v-if="avaliableDevices[slotProps.value].description">
+									({{ avaliableDevices[slotProps.value].description }})</span
+								>
 							</template>
 						</template>
 						<template #option="slotProps" v-if="avaliableDevices !== null">
-							{{ avaliableDevices[slotProps.option].name }} ({{
-								avaliableDevices[slotProps.option].description
-							}})
+							{{ avaliableDevices[slotProps.option].name
+							}}<span v-if="avaliableDevices[slotProps.option].description">
+								({{ avaliableDevices[slotProps.option].description }})</span
+							>
 						</template>
 					</Select>
 				</div>
