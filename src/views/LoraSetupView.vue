@@ -12,6 +12,10 @@ const props = defineProps<{
 	nextURL?: string
 }>()
 
+const emit = defineEmits<{
+	(e: 'lora-bind'): void
+}>()
+
 const router = useRouter()
 const toast = useToast()
 
@@ -39,6 +43,7 @@ async function submitLoraSetup(): Promise<void> {
 	})
 	submitting.value = false
 	if (res.ok) {
+		emit('lora-bind')
 		router.push(props.nextURL || '/')
 		return
 	}
@@ -51,8 +56,23 @@ async function submitLoraSetup(): Promise<void> {
 }
 
 onMounted(() => {
-	api.getAvaliableDevices().then((devices) => {
-		avaliableDevices.value = devices
+	Promise.all([
+		api.connectedLoraPort().then((config) => {
+			if (config) {
+				loraConfig.baudRate = config.baudRate
+			}
+			return config
+		}),
+		api.getAvaliableDevices().then((devices) => {
+			avaliableDevices.value = devices
+		}),
+	]).then(([config]) => {
+		if (config && avaliableDevices.value) {
+			const i = avaliableDevices.value.findIndex(({ name }) => name === config.device)
+			if (i >= 0) {
+				loraConfig.device = i
+			}
+		}
 	})
 })
 </script>

@@ -1,11 +1,21 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import Button from 'primevue/button'
 import Toast from 'primevue/toast'
+import * as api from '@/api/instance'
 
-const loraConnected = ref(false)
-const rtkConnected = ref(false)
+const loraConnected = ref(true)
+const rtkConnected = ref(true)
+
+onMounted(() => {
+	api.connectedLoraPort().then((config) => {
+		loraConnected.value = !!config
+	})
+	api.connectedRtkPort().then((config) => {
+		rtkConnected.value = !!config
+	})
+})
 </script>
 
 <template>
@@ -30,7 +40,11 @@ const rtkConnected = ref(false)
 
 	<RouterView v-slot="{ Component }">
 		<KeepAlive include="HomeView">
-			<component :is="Component" />
+			<component
+				:is="Component"
+				@lora-bind="loraConnected = true"
+				@rtk-bind="rtkConnected = true"
+			/>
 		</KeepAlive>
 	</RouterView>
 	<Toast position="top-right" />

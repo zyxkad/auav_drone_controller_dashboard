@@ -15,6 +15,10 @@ const props = defineProps<{
 	nextURL?: string
 }>()
 
+const emit = defineEmits<{
+	(e: 'rtk-bind'): void
+}>()
+
 const router = useRouter()
 const toast = useToast()
 
@@ -48,6 +52,7 @@ async function submitRTKSetup(): Promise<void> {
 	})
 	submitting.value = false
 	if (res.ok) {
+		emit('rtk-bind')
 		router.push(props.nextURL || '/')
 		return
 	}

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, readonly, onMounted } from 'vue'
+import { useToast } from 'primevue/usetoast'
+import type { ToastMessageOptions } from 'primevue/toast'
 import DroneList from '@/components/DroneList.vue'
 import DroneOverview from '@/components/DroneOverview.vue'
 import LogBlock from '@/components/LogBlock.vue'
@@ -10,6 +12,8 @@ import { DroneStatus } from '@/api'
 import * as api from '@/api/instance'
 import { onAwsEvent } from '@/stores/aws'
 import { flightModeToString } from '@/data/flight_modes'
+
+const toast = useToast()
 
 const logBlk = ref<InstanceType<typeof LogBlock>>()
 
@@ -71,6 +75,22 @@ function onLedChanged(drone: number, color: ColorInfo) {
 
 onAwsEvent<LogMessage>('log', ({ data }) => {
 	logBlk.value?.pushLog(data)
+})
+
+interface ToastMessage {
+	level: ToastMessageOptions['severity']
+	title: string
+	msg: string
+	life: number
+}
+
+onAwsEvent<ToastMessage>('toast', ({ data }) => {
+	toast.add({
+		severity: data.level,
+		summary: data.title,
+		detail: data.msg,
+		life: data.life,
+	})
 })
 
 // TODO: query drone list once websocket connected

@@ -42,6 +42,10 @@
 	cursor: not-allowed;
 }
 
+.no-wrap {
+	white-space: nowrap;
+}
+
 a {
 	color: var(--p-text-muted-color);
 }

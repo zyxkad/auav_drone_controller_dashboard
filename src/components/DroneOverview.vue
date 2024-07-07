@@ -30,7 +30,7 @@ const errorDrones = computed(() => countDrones((d) => d.status === DroneStatus.E
 <template>
 	<Card>
 		<template #title>
-			<h3 class="no-margin">Drone Status</h3>
+			<h3 class="no-margin no-wrap">Drone Overview</h3>
 		</template>
 		<template #content>
 			<div class="status-box">
