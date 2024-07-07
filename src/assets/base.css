@@ -20,6 +20,7 @@ body {
 
 .p-card-content {
 	height: 100%;
+	overflow: hidden;
 }
 
 .p-disabled {

@@ -62,7 +62,6 @@ async function submitRTKSetup(): Promise<void> {
 onMounted(() => {
 	Promise.all([
 		api.connectedRtkPort().then((config) => {
-			console.log('rtk config:', config)
 			if (config) {
 				rtkConfig.baudRate = config.baudRate
 				rtkConfig.surveyIn = config.surveyIn
