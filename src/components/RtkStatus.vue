@@ -56,6 +56,7 @@ onAwsEvent<RTKSurveyInData>('rtk-survey-in', ({ data }) => {
 						<b>Base Satellite</b>
 						<span>{{ rtkInfo.satelliteNum }}</span>
 					</div>
+					<!-- TODO: show if RTK activated -->
 				</div>
 			</div>
 		</template>

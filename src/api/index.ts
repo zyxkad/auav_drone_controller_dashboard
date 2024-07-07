@@ -82,6 +82,7 @@ export interface RTKInfo {
 
 export enum DroneStatus {
 	NONE = 'N/A',
+	UNSTABLE = 'UNSTABLE',
 	READY = 'READY',
 	SLEEPING = 'SLEEPING',
 	ARMED = 'ARMED',
@@ -128,11 +129,17 @@ export namespace GPSType {
 	}
 }
 
-export interface GPSInfo {
-	type: GPSType
+export interface GPSData {
 	lat: number // in degrees
 	lon: number // in degrees
 	alt: number // in meters
+}
+
+interface RotateData {
+	// TODO: not good structure
+	0: number
+	1: number
+	2: number
 }
 
 export interface BatteryStat {
@@ -147,13 +154,36 @@ export interface ColorInfo {
 	b: number
 }
 
-export interface DroneInfo {
+export interface DroneExtraInfo {
+	LED: ColorInfo
+}
+
+export interface DroneStatusInfo {
 	id: number
 	status: DroneStatus
-	gps: GPSInfo
+	mode: number
 	battery: BatteryStat
 	lastActivate: number // epoch in milliseconds
-	led: ColorInfo
+	extra?: DroneExtraInfo | null
+}
+
+export interface DronePositionInfo {
+	id: number
+	gpsType: GPSType
+	gps: GPSData
+	rotate: RotateData
+}
+
+export type DroneInfo = {
+	id: number
+	status?: DroneStatus
+	mode?: string
+	battery?: BatteryStat
+	gpsType?: GPSType
+	gps?: GPSData
+	rotate?: RotateData
+	lastActivate?: number
+	extra?: DroneExtraInfo | null
 }
 
 export interface SatelliteConfig {
@@ -162,4 +192,10 @@ export interface SatelliteConfig {
 	Galileo: boolean
 	BeiDou: boolean
 	PVT: boolean
+}
+
+export interface LogMessage {
+	time: number
+	lvl: string
+	msg: string
 }

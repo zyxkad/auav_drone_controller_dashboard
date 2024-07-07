@@ -15,7 +15,7 @@ const now = ref(Date.now())
 const picker = ref<InstanceType<typeof ColorPicker>>()
 const droneLedColor = computed({
 	get(): ColorInfo {
-		return props.drone.led
+		return props.drone.extra?.LED || { r: 0, g: 0, b: 0 }
 	},
 	set(value: ColorInfo) {
 		emit('ledChanged', value)
@@ -60,18 +60,20 @@ onBeforeUnmount(() => {
 		<div class="status-light" :status="drone.status"></div>
 		<b class="id">{{ drone.id }}</b>
 		<b class="status">{{ drone.status }}</b>
-		<div class="voltage">{{ drone.battery.voltage.toFixed(3) }}</div>
-		<div class="current">{{ drone.battery.current.toFixed(3) }}</div>
-		<b class="remaining">{{ Math.floor(drone.battery.remaining * 100) }}</b>
-		<b class="gps-type">{{ GPSType.asString(drone.gps.type) }}</b>
+		<div class="voltage">{{ drone.battery?.voltage.toFixed(3) || '--' }}</div>
+		<div class="current">{{ drone.battery?.current.toFixed(3) || '--' }}</div>
+		<b class="remaining">{{ drone.battery ? Math.floor(drone.battery.remaining * 100) : '--' }}</b>
+		<b class="gps-type">{{ drone.gpsType ? GPSType.asString(drone.gpsType) : '--' }}</b>
 		<!-- TODO: Show visible satellites -->
 		<div class="gps">
-			(<span>{{ drone.gps.lat.toFixed(5) }}</span
-			>, <span>{{ drone.gps.lon.toFixed(5) }}</span
-			>, <span>{{ drone.gps.alt.toFixed(2) }}</span
+			(<span>{{ drone.gps?.lat.toFixed(5) || '--' }}</span
+			>, <span>{{ drone.gps?.lon.toFixed(5) || '--' }}</span
+			>, <span>{{ drone.gps?.alt.toFixed(2) || '--' }}</span
 			>)
 		</div>
-		<b class="last-activate">{{ formatLastActivate(drone.lastActivate) }}</b>
+		<b class="last-activate">{{
+			drone.lastActivate ? formatLastActivate(drone.lastActivate) : 'never'
+		}}</b>
 		<!-- TODO: Only need a few colors and flash for LED control -->
 		<ColorPicker
 			ref="picker"
@@ -92,8 +94,9 @@ onBeforeUnmount(() => {
 	width: 100%;
 	min-width: max-content;
 	height: 3rem;
-	font-family: 'Courier New', monospace;
 	border-bottom: var(--p-surface-300) solid 1px;
+	font-family: 'Courier New', monospace;
+	white-space: nowrap;
 }
 
 .drone > * {
@@ -169,6 +172,7 @@ onBeforeUnmount(() => {
 
 .remaining {
 	width: 3em;
+	padding-right: 0.5em;
 	text-align: right;
 }
 
@@ -182,7 +186,7 @@ onBeforeUnmount(() => {
 }
 
 .gps {
-	width: 18em;
+	width: 18.5em;
 }
 
 .last-activate {

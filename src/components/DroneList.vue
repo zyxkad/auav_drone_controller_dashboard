@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { computed, ref, reactive } from 'vue'
 import Card from 'primevue/card'
 import ContextMenu from 'primevue/contextmenu'
 import type { MenuItem } from 'primevue/menuitem'
@@ -8,7 +8,7 @@ import DroneItem from './DroneItem.vue'
 import type { ColorInfo, DroneInfo } from '@/api'
 
 const props = defineProps<{
-	drones: DroneInfo[]
+	drones: ReadonlyMap<number, DroneInfo>
 }>()
 
 defineEmits<{
@@ -19,6 +19,9 @@ const toast = useToast()
 
 const menu = ref<InstanceType<typeof ContextMenu>>()
 const selected = reactive<number[]>([])
+
+const sortMethod = ref<(a: DroneInfo, b: DroneInfo) => number>((a, b) => a.id - b.id)
+const dronesSorted = computed(() => Array.from(props.drones.values()).sort(sortMethod.value))
 
 function doHome(): void {
 	// TODO
@@ -48,13 +51,11 @@ async function doCopyGPS(): Promise<void> {
 	let data = ''
 	let count = 0
 	const drones = selected.length
-		? selected.map((id) => props.drones.find((d) => d.id === id))
-		: props.drones
-	for (const drone of drones) {
-		if (drone) {
-			data += `{ id:${drone.id}, lat:${drone.gps.lat}, lon:${drone.gps.lon}, alt:${drone.gps.alt}, typ:${drone.gps.type} }\n`
-			count++
-		}
+		? (selected.map((id) => props.drones.get(id)).filter((d) => d !== undefined) as DroneInfo[])
+		: dronesSorted.value
+	for (const drone of drones.values()) {
+		data += `{ id:${drone.id}, lat:${drone.gps?.lat}, lon:${drone.gps?.lon}, alt:${drone.gps?.alt}, typ:${drone.gpsType} }\n`
+		count++
 	}
 	await navigator.clipboard.writeText(data)
 	toast.add({
@@ -133,12 +134,12 @@ function onClickDrone(event: PointerEvent, id?: number) {
 		if (!event.shiftKey || lastClicked === null) {
 			selected.push(id)
 		} else if (lastClicked !== id) {
-			const lastIndex = props.drones.findIndex((d) => d.id === lastClicked)
-			const curIndex = props.drones.findIndex((d) => d.id === id)
+			const lastIndex = dronesSorted.value.findIndex((d) => d.id === lastClicked)
+			const curIndex = dronesSorted.value.findIndex((d) => d.id === id)
 			const lowIndex = Math.min(curIndex, lastIndex)
 			const highIndex = Math.max(curIndex, lastIndex)
 			for (let i = lowIndex; i <= highIndex; i++) {
-				selected.push(props.drones[i].id)
+				selected.push(dronesSorted.value[i].id)
 			}
 		}
 	} else {
@@ -197,7 +198,7 @@ function onContextMenu(event: PointerEvent, id?: number) {
 					<div class="last-activate">LAST_ACTIVATE</div>
 				</div>
 				<DroneItem
-					v-for="drone in drones"
+					v-for="drone in dronesSorted"
 					:key="drone.id"
 					@click="onClickDrone($event, drone.id)"
 					@contextmenu.stop="onContextMenu($event, drone.id)"
@@ -222,16 +223,24 @@ function onContextMenu(event: PointerEvent, id?: number) {
 	overflow: auto;
 }
 
+.drone-list > * {
+	flex-shrink: 0;
+}
+
 .drone-list-header {
+	position: sticky;
+	top: 0;
+	z-index: 1;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	width: 100%;
 	height: 3rem;
 	min-width: max-content;
+	border-bottom: var(--p-surface-300) solid 2px;
+	background-color: var(--p-card-background);
 	font-weight: bold;
 	font-family: 'Monaco', monospace;
-	border-bottom: var(--p-surface-300) solid 2px;
 }
 
 .drone-list-header > * {
@@ -262,7 +271,7 @@ function onContextMenu(event: PointerEvent, id?: number) {
 }
 
 .gps {
-	width: 18em;
+	width: 18.5em;
 }
 
 .drone[selected='true'] {

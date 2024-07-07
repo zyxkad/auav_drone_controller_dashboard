@@ -1,158 +1,70 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, readonly, onMounted } from 'vue'
 import DroneList from '@/components/DroneList.vue'
-import DroneStatus from '@/components/DroneStatus.vue'
+import DroneOverview from '@/components/DroneOverview.vue'
 import LogBlock from '@/components/LogBlock.vue'
 import RtkStatus from '@/components/RtkStatus.vue'
-import type { ColorInfo, DroneInfo } from '@/api'
+import type { ColorInfo, DroneInfo, DroneStatusInfo, DronePositionInfo, LogMessage } from '@/api'
+import { DroneStatus } from '@/api'
 import * as api from '@/api/instance'
 import { onAwsEvent } from '@/stores/aws'
+import { flightModeToString } from '@/data/flight_modes'
 
 const logBlk = ref<InstanceType<typeof LogBlock>>()
 
-const drones = reactive<DroneInfo[]>([
-	{
-		id: 123,
-		status: 'N/A' as any,
-		battery: {
-			voltage: 17.123,
-			current: 99.876,
-			remaining: 0.5421,
-		},
-		gps: {
-			type: 5,
-			lat: 50.123456,
-			lon: 12.987654,
-			alt: 9876.54,
-		},
-		lastActivate: Date.now(),
-		led: {
-			r: 200,
-			g: 100,
-			b: 50,
-		},
-	},
-	{
-		id: 1,
-		status: 'READY' as any,
-		battery: {
-			voltage: 17.123,
-			current: 99.876,
-			remaining: 0.5421,
-		},
-		gps: {
-			type: 3,
-			lat: 50.123456,
-			lon: 12.987654,
-			alt: 9876.54,
-		},
-		lastActivate: Date.now() + 3000,
-		led: {
-			r: 100,
-			g: 150,
-			b: 250,
-		},
-	},
-	{
-		id: 5,
-		status: 'SLEEPING' as any,
-		battery: {
-			voltage: 17.123,
-			current: 99.876,
-			remaining: 0.5421,
-		},
-		gps: {
-			type: 1,
-			lat: 50.123456,
-			lon: 12.987654,
-			alt: 9876.54,
-		},
-		lastActivate: Date.now() + 3000,
-		led: {
-			r: 100,
-			g: 100,
-			b: 100,
-		},
-	},
-	{
-		id: 2,
-		status: 'ARMED' as any,
-		battery: {
-			voltage: 17.123,
-			current: 99.876,
-			remaining: 0.5421,
-		},
-		gps: {
-			type: 2,
-			lat: 50.123456,
-			lon: 12.987654,
-			alt: 9876.54,
-		},
-		lastActivate: Date.now() + 3000,
-		led: {
-			r: 0,
-			g: 0,
-			b: 0,
-		},
-	},
-	{
-		id: 3,
-		status: 'TAKENOFF' as any,
-		battery: {
-			voltage: 17.123,
-			current: 99.876,
-			remaining: 0.5421,
-		},
-		gps: {
-			type: 0,
-			lat: 50.123456,
-			lon: 12.987654,
-			alt: 9876.54,
-		},
-		lastActivate: Date.now() + 3000,
-		led: {
-			r: 0,
-			g: 200,
-			b: 200,
-		},
-	},
-	{
-		id: 4,
-		status: 'ERROR' as any,
-		battery: {
-			voltage: 17.123,
-			current: 99.876,
-			remaining: 0.5421,
-		},
-		gps: {
-			type: 6,
-			lat: 50.123456,
-			lon: 12.987654,
-			alt: 9876.54,
-		},
-		lastActivate: Date.now() + 3000,
-		led: {
-			r: 200,
-			g: 200,
-			b: 0,
-		},
-	},
-])
+const drones = reactive<Map<number, DroneInfo>>(new Map())
+const readonlyDrones = readonly(drones)
 
 function onLedChanged(drone: number, color: ColorInfo) {
 	console.log('on led changed for:', drone, color)
 }
 
-onAwsEvent('drone-info', (event: MessageEvent<DroneInfo>) => {
-	console.log('drone-info', event.data)
+onAwsEvent<LogMessage>('log', ({ data }) => {
+	logBlk.value?.pushLog(data)
+})
+
+// TODO: query drone list once websocket connected
+onAwsEvent<number>('drone-connected', ({ data }) => {
+	const d = drones.get(data)
+	if (d) {
+		d.status = DroneStatus.UNSTABLE
+	} else {
+		drones.set(data, {
+			id: data,
+			status: DroneStatus.UNSTABLE,
+		})
+	}
+})
+
+onAwsEvent<number>('drone-disconnected', ({ data }) => {
+	const d = drones.get(data)
+	if (d) {
+		d.status = DroneStatus.NONE
+	}
+})
+
+onAwsEvent<DroneStatusInfo>('drone-info', ({ data }) => {
+	const d = drones.get(data.id)
+	if (!d) {
+		return
+	}
+	Object.assign(d, data, { mode: flightModeToString(data.mode) })
+})
+
+onAwsEvent<DronePositionInfo>('drone-pos-info', ({ data }) => {
+	const d = drones.get(data.id)
+	if (!d) {
+		return
+	}
+	Object.assign(d, data)
 })
 </script>
 
 <template>
 	<main id="main">
 		<RtkStatus class="no-select rtk-status" />
-		<DroneStatus class="no-select drone-status" :drones="drones" />
-		<DroneList class="drone-list" :drones="drones" @ledChanged="onLedChanged" />
+		<DroneOverview class="no-select drone-status" :drones="readonlyDrones" />
+		<DroneList class="drone-list" :drones="readonlyDrones" @ledChanged="onLedChanged" />
 		<LogBlock ref="logBlk" class="log-block" />
 	</main>
 </template>

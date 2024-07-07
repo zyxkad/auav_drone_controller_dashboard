@@ -4,12 +4,12 @@ import Card from 'primevue/card'
 import { DroneStatus, type DroneInfo } from '@/api'
 
 const props = defineProps<{
-	drones: DroneInfo[]
+	drones: ReadonlyMap<number, DroneInfo>
 }>()
 
 function countDrones(tester: (drone: DroneInfo) => boolean): number {
 	let count = 0
-	for (const drone of props.drones) {
+	for (const drone of props.drones.values()) {
 		if (tester(drone)) {
 			count++
 		}
@@ -17,9 +17,9 @@ function countDrones(tester: (drone: DroneInfo) => boolean): number {
 	return count
 }
 
-const droneCount = computed(() => props.drones.length)
+const droneCount = computed(() => props.drones.size)
 const connectedDrones = computed(() => countDrones((d) => d.status !== DroneStatus.NONE))
-const missingDrones = computed(() => props.drones.length - connectedDrones.value)
+const missingDrones = computed(() => props.drones.size - connectedDrones.value)
 const sleepingDrones = computed(() => countDrones((d) => d.status === DroneStatus.SLEEPING))
 const readyDrones = computed(() => countDrones((d) => d.status === DroneStatus.READY))
 const armingDrones = computed(() => countDrones((d) => d.status === DroneStatus.ARMED))

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, nextTick, getCurrentInstance, onMounted, onBeforeUnmount } from 'vue'
 import { RingBuffer } from '@/utils/ring'
+import type { LogMessage } from '@/api'
 
 interface Log {
 	_inc?: number
@@ -70,8 +71,14 @@ function activeScroller(): void {
 	})
 }
 
-function pushLog(log: Log): void {
-	log._inc = logInc = (logInc + 1) % 65536
+function pushLog(msg: LogMessage): void {
+	logInc = (logInc + 1) % 65536
+	const log = {
+		_inc: logInc,
+		time: msg.time,
+		lvl: msg.lvl,
+		log: msg.msg,
+	}
 	logs.push(log)
 	justSplicedLog = true
 	if (justSplicedLogCleaner) {

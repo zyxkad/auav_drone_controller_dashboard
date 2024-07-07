@@ -28,7 +28,11 @@ const rtkConnected = ref(false)
 		</nav>
 	</header>
 
-	<RouterView />
+	<RouterView v-slot="{ Component }">
+		<KeepAlive include="HomeView">
+			<component :is="Component" />
+		</KeepAlive>
+	</RouterView>
 	<Toast position="top-right" />
 </template>
 
@@ -42,7 +46,7 @@ header {
 	align-items: center;
 	width: 100%;
 	height: 4rem;
-	background-color: var(--primary-50);
+	background-color: color-mix(in srgb, var(--p-primary-400) 15%, #0000);
 	box-shadow: #0008 0 0 1rem -0.5rem;
 	line-height: 1.5;
 }
