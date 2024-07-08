@@ -12,14 +12,15 @@ body {
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+	overflow-x: hidden;
 }
 
-.p-card-body {
+.p-card-body,
+.p-card-body > .p-card-content {
 	height: 100%;
 }
 
-.p-card-content {
-	height: 100%;
+.card-overflow-hidden > .p-card-body > .p-card-content {
 	overflow: hidden;
 }
 

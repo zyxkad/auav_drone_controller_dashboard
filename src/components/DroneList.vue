@@ -181,7 +181,7 @@ function onContextMenu(event: PointerEvent, id?: number) {
 </script>
 
 <template>
-	<Card @click="onClickDrone" @contextmenu.stop="onContextMenu">
+	<Card class="card-overflow-hidden" @click="onClickDrone" @contextmenu.stop="onContextMenu">
 		<template #title>
 			<h3 class="no-select no-margin">Drones</h3>
 		</template>

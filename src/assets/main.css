@@ -46,6 +46,20 @@
 	white-space: nowrap;
 }
 
+.flex-row-center {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.flex-space-between {
+	justify-content: space-between;
+}
+
+.flex-end {
+	justify-content: flex-end;
+}
+
 a {
 	color: var(--p-text-muted-color);
 }

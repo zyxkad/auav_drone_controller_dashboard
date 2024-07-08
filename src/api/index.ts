@@ -77,7 +77,12 @@ export interface RTKInfo {
 	status: RTKStatus
 	svinDur: number
 	svinAcc: number
-	satelliteNum: number
+	satellites: {
+		[name: string]: {
+			count: number
+			using: boolean
+		}
+	}
 }
 
 export enum DroneStatus {
