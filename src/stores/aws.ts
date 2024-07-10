@@ -36,3 +36,8 @@ export function offAwsEvent<T = unknown>(
 	const aws = useAwsStore()
 	aws.removeEventListener(event, listener as EventListener, options)
 }
+
+export function sendAwsMessage(event: string, data?: any) {
+	const aws = useAwsStore()
+	aws.send(event, data)
+}

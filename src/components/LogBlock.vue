@@ -182,7 +182,7 @@ onBeforeUnmount(() => {
 .inner {
 	width: 100%;
 	height: 100%;
-	padding: 1rem;
+	padding: 0.6rem;
 	overflow: auto;
 	overflow-anchor: none;
 }
@@ -193,7 +193,7 @@ onBeforeUnmount(() => {
 	left: 0;
 	width: 100%;
 	height: 100%;
-	border-radius: 0.5rem;
+	border-radius: inherit;
 	box-shadow: 2px 2px 15px -2px #000 inset;
 	pointer-events: none;
 }

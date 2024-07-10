@@ -263,7 +263,7 @@ function onContextMenu(event: PointerEvent, id?: number) {
 }
 
 .remaining {
-	width: 3em;
+	width: 3.5em;
 }
 
 .gps-type {

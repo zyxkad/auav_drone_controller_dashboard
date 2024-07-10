@@ -27,7 +27,7 @@ const rtkConfig = reactive({
 	baudRate: 9600,
 	surveyIn: true,
 	surveyInDur: 60,
-	surveyInAcc: 10,
+	surveyInAcc: 1,
 })
 
 const avaliableDevices = ref<Device[] | null>(null)

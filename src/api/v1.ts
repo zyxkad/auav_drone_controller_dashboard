@@ -24,11 +24,30 @@ export async function connectedLoraPort(): Promise<LoraConfig | null> {
 	return resp.data
 }
 
-export async function connectLoraPort(config: LoraConfig): Promise<RespStatus> {
+async function tryConnectLoraPort(config: LoraConfig): Promise<RespStatus> {
 	return await axios
 		.post(`/api/lora/connect`, config)
 		.then(() => RespStatus.OK)
 		.catch(RespStatus.fromError)
+}
+
+export async function disconnectLoraPort(): Promise<RespStatus> {
+	return await axios
+		.delete(`/api/lora/connect`)
+		.then(() => RespStatus.OK)
+		.catch(RespStatus.fromError)
+}
+
+export async function connectLoraPort(config: LoraConfig): Promise<RespStatus> {
+	const resp = await tryConnectLoraPort(config)
+	if (resp.code !== 409) {
+		return resp
+	}
+	const resp2 = await disconnectLoraPort()
+	if (!resp2.ok) {
+		return resp2
+	}
+	return await tryConnectLoraPort(config)
 }
 
 export async function connectedRtkPort(): Promise<RTKConfig | null> {
@@ -36,11 +55,30 @@ export async function connectedRtkPort(): Promise<RTKConfig | null> {
 	return resp.data
 }
 
-export async function connectRtkPort(config: RTKConfig): Promise<RespStatus> {
+export async function tryConnectRtkPort(config: RTKConfig): Promise<RespStatus> {
 	return await axios
 		.post(`/api/rtk/connect`, config)
 		.then(() => RespStatus.OK)
 		.catch(RespStatus.fromError)
+}
+
+export async function disconnectRtkPort(): Promise<RespStatus> {
+	return await axios
+		.delete(`/api/rtk/connect`)
+		.then(() => RespStatus.OK)
+		.catch(RespStatus.fromError)
+}
+
+export async function connectRtkPort(config: RTKConfig): Promise<RespStatus> {
+	const resp = await tryConnectRtkPort(config)
+	if (resp.code !== 409) {
+		return resp
+	}
+	const resp2 = await disconnectRtkPort()
+	if (!resp2.ok) {
+		return resp2
+	}
+	return await tryConnectRtkPort(config)
 }
 
 export async function getSatelliteConfig(): Promise<SatelliteConfig> {

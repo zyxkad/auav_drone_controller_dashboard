@@ -62,7 +62,7 @@ onBeforeUnmount(() => {
 		<b class="status">{{ drone.status }}</b>
 		<div class="voltage">{{ drone.battery?.voltage.toFixed(3) || '--' }}</div>
 		<div class="current">{{ drone.battery?.current.toFixed(3) || '--' }}</div>
-		<b class="remaining">{{ drone.battery ? Math.floor(drone.battery.remaining * 100) : '--' }}</b>
+		<b class="remaining">{{ drone.battery ? (drone.battery.remaining * 100).toFixed(1) : '--' }}</b>
 		<b class="gps-type">{{ drone.gpsType ? GPSType.asString(drone.gpsType) : '--' }}</b>
 		<!-- TODO: Show visible satellites -->
 		<div class="gps">
@@ -171,7 +171,7 @@ onBeforeUnmount(() => {
 }
 
 .remaining {
-	width: 3em;
+	width: 3.5em;
 	padding-right: 0.5em;
 	text-align: right;
 }

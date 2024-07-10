@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, readonly, onMounted } from 'vue'
+import { ref, reactive, readonly, onBeforeMount } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import type { ToastMessageOptions } from 'primevue/toast'
 import DroneList from '@/components/DroneList.vue'
@@ -10,7 +10,7 @@ import LeftRightButton from '@/components/LeftRightButton.vue'
 import type { ColorInfo, DroneInfo, DroneStatusInfo, DronePositionInfo, LogMessage } from '@/api'
 import { DroneStatus } from '@/api'
 import * as api from '@/api/instance'
-import { onAwsEvent } from '@/stores/aws'
+import { onAwsEvent, sendAwsMessage } from '@/stores/aws'
 import { flightModeToString } from '@/data/flight_modes'
 
 const toast = useToast()
@@ -113,6 +113,17 @@ onAwsEvent<number>('drone-disconnected', ({ data }) => {
 	}
 })
 
+onAwsEvent<(DroneStatusInfo & DronePositionInfo)[]>('drone-list', ({ data }) => {
+	for (const item of data) {
+		const d = drones.get(item.id)
+		if (d) {
+			Object.assign(d, item, { mode: flightModeToString(item.mode) })
+		} else {
+			drones.set(item.id, Object.assign(item, { mode: flightModeToString(item.mode) }))
+		}
+	}
+})
+
 onAwsEvent<DroneStatusInfo>('drone-info', ({ data }) => {
 	const d = drones.get(data.id)
 	if (!d) {
@@ -127,6 +138,10 @@ onAwsEvent<DronePositionInfo>('drone-pos-info', ({ data }) => {
 		return
 	}
 	Object.assign(d, data)
+})
+
+onBeforeMount(() => {
+	sendAwsMessage('drone-list-req')
 })
 </script>
 

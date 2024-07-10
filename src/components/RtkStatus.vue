@@ -73,8 +73,7 @@ onAwsEvent<RTKSurveyInData>('rtk-survey-in', ({ data }) => {
 									</h4>
 									<div
 										v-for="[name, { using, count }] in Object.entries(rtkInfo.satellites).sort(
-											([name1, { count: count1 }], [name2, { count: count2 }]) =>
-												count2 - count1,
+											([name1, { count: count1 }], [name2, { count: count2 }]) => count2 - count1,
 										)"
 										class="flex-row-center flex-space-between"
 									>
@@ -155,5 +154,4 @@ onAwsEvent<RTKSurveyInData>('rtk-survey-in', ({ data }) => {
 	border: 0.5rem solid #0000;
 	border-bottom-color: #000a;
 }
-
 </style>
