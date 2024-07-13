@@ -34,7 +34,7 @@ defineExpose({
 </script>
 
 <template>
-	<Dialog v-model:visible="visible" position="right" header="Director Setup">
+	<Dialog v-model:visible="visible" style="box-shadow: #000 0px 0px 15px 1px" position="right" header="Director Setup">
 		<form class="director-dialog" @submit.prevent="onSubmit">
 			<div class="option-box">
 				<label>Latitude</label>

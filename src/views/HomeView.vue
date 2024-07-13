@@ -116,9 +116,9 @@ onAwsEvent<(DroneStatusInfo & DronePositionInfo)[]>('drone-list', ({ data }) => 
 	for (const item of data) {
 		const d = drones.get(item.id)
 		if (d) {
-			Object.assign(d, item, { mode: FlightMode[item.mode] || 'UNKNOWN' })
+			Object.assign(d, item)
 		} else {
-			drones.set(item.id, Object.assign(item, { mode: FlightMode[item.mode] || 'UNKNOWN' }))
+			drones.set(item.id, item)
 		}
 	}
 })
@@ -128,7 +128,7 @@ onAwsEvent<DroneStatusInfo>('drone-info', ({ data }) => {
 	if (!d) {
 		return
 	}
-	Object.assign(d, data, { mode: FlightMode[data.mode] || 'UNKNOWN' })
+	Object.assign(d, data)
 })
 
 onAwsEvent<DronePositionInfo>('drone-pos', ({ data }) => {

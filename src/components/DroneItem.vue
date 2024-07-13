@@ -32,16 +32,19 @@ const droneLedColor = computed({
 })
 
 function formatMicroseconds(dur: number): string {
-	if (dur <= 1000) {
+	if (dur < 1000) {
 		return Math.floor(dur) + 'µs'
 	}
 	dur /= 1000
-	if (dur <= 1000) {
+	if (dur < 100) {
+		return dur.toFixed(2) + 'ms'
+	}
+	if (dur < 1000) {
 		return Math.floor(dur) + 'ms'
 	}
 	dur /= 1000
 	if (dur < 61) {
-		return Math.floor(dur) + 's'
+		return dur.toFixed(1) + 's'
 	}
 	dur /= 60
 	if (dur < 61) {
@@ -231,7 +234,7 @@ onBeforeUnmount(() => {
 	width: 15em;
 }
 .ping {
-	width: 3.8em;
+	width: 4.2em;
 }
 .last-activate {
 	width: 3rem;

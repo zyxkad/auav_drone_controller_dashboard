@@ -25,9 +25,7 @@ const menu = ref<InstanceType<typeof ContextMenu>>()
 const selected = reactive<number[]>([])
 
 const filterSelectElem = ref()
-const filterOptions = [
-	'Status', 'Mode', 'Voltage', 'Current', 'Remaining', 'GPS Type', 'GPS', 'Relative Pos', 'Ping',
-]
+const filterOptions = ['Status', 'Mode', 'Voltage', 'Current', 'Remaining', 'GPS Type', 'GPS', 'Relative Pos', 'Ping']
 const selectedFilters = ref(Array.from(filterOptions))
 const enabledColumns = {
 	status: computed(() => selectedFilters.value.includes('Status')),
@@ -129,15 +127,10 @@ async function doCopyGPS(): Promise<void> {
 	})
 }
 
-const changeModeMenuItem: MenuItem = {
-	label: 'Change Mode',
-	icon: 'pi pi-hammer',
-	class: 'change-mode-context-item',
-	items: Object.values(FlightMode)
-		.filter(Number.isInteger as (v: unknown) => v is FlightMode)
-		.sort((a, b) => a - b)
-		.map<MenuItem>((m) => ({ label: `(${m}) ${FlightMode[m]}`, command: () => doChangeMode(m) })),
-}
+const changeModeMenuItems: MenuItem[] = Object.values(FlightMode)
+	.filter(Number.isInteger as (v: unknown) => v is FlightMode)
+	.sort((a, b) => a - b)
+	.map<MenuItem>((m) => ({ label: `(${m}) ${FlightMode[m]}`, command: () => doChangeMode(m) }))
 
 const globalItems: MenuItem[] = [
 	{
@@ -150,7 +143,12 @@ const globalItems: MenuItem[] = [
 			{ label: 'Disarm All', icon: 'pi pi-ban', command: () => doDroneAction(DroneAction.DISARM) },
 		],
 	},
-	changeModeMenuItem,
+	{
+		label: 'Change Mode All',
+		icon: 'pi pi-hammer',
+		class: 'change-mode-context-item',
+		items: changeModeMenuItems,
+	},
 	{ label: 'Sleep All', icon: 'pi pi-moon', command: () => doDroneAction(DroneAction.SLEEP) },
 	{ label: 'Wakeup All', icon: 'pi pi-eye', command: () => doDroneAction(DroneAction.WAKEUP) },
 	{ label: 'Control All Lights', icon: 'pi pi-sliders-v', command: doControlLight },
@@ -168,7 +166,12 @@ const individualItems: MenuItem[] = [
 			{ label: 'Disarm', icon: 'pi pi-ban', command: () => doDroneAction(DroneAction.DISARM) },
 		],
 	},
-	changeModeMenuItem,
+	{
+		label: 'Change Mode',
+		icon: 'pi pi-hammer',
+		class: 'change-mode-context-item',
+		items: changeModeMenuItems,
+	},
 	{ label: 'Sleep', icon: 'pi pi-moon', command: () => doDroneAction(DroneAction.SLEEP) },
 	{ label: 'Wakeup', icon: 'pi pi-eye', command: () => doDroneAction(DroneAction.WAKEUP) },
 	{ label: 'Control Lights', icon: 'pi pi-sliders-v', command: doControlLight },
@@ -186,7 +189,12 @@ const groupItems: MenuItem[] = [
 			{ label: 'Disarm Selected', icon: 'pi pi-ban', command: () => doDroneAction(DroneAction.DISARM) },
 		],
 	},
-	changeModeMenuItem,
+	{
+		label: 'Change Mode Selected',
+		icon: 'pi pi-hammer',
+		class: 'change-mode-context-item',
+		items: changeModeMenuItems,
+	},
 	{ label: 'Sleep Selected', icon: 'pi pi-moon', command: () => doDroneAction(DroneAction.SLEEP) },
 	{ label: 'Wakeup Selected', icon: 'pi pi-eye', command: () => doDroneAction(DroneAction.WAKEUP) },
 	{ label: 'Control Selected Lights', icon: 'pi pi-sliders-v', command: doControlLight },
@@ -265,13 +273,16 @@ function onContextMenu(event: PointerEvent, id?: number) {
 }
 
 onMounted(() => {
-	const observer = new IntersectionObserver(([{isIntersecting}]) => {
-		leftStucking.value = !isIntersecting
-	}, {
-		root: listElem.value,
-		rootMargin: '0px',
-		threshold: 1,
-	})
+	const observer = new IntersectionObserver(
+		([{ isIntersecting }]) => {
+			leftStucking.value = !isIntersecting
+		},
+		{
+			root: listElem.value,
+			rootMargin: '0px',
+			threshold: 1,
+		},
+	)
 	observer.observe(listHeaderIdElem.value)
 })
 </script>
@@ -280,26 +291,44 @@ onMounted(() => {
 	<Card class="card-overflow-hidden" @click="onClickDrone" @contextmenu.stop="onContextMenu">
 		<template #title>
 			<h3 class="no-select no-margin inline-block">Drones</h3>
-			<Button text rounded severity="secondary" icon="pi pi-filter" style="margin-left: 0.3em" @click="filterSelectElem.$el.click($event)" />
-			<MultiSelect ref="filterSelectElem" class="not-visible" :showToggleAll="false" scrollHeight="14.5rem" v-model="selectedFilters" :options="filterOptions">
+			<Button
+				text
+				rounded
+				severity="secondary"
+				icon="pi pi-filter"
+				style="margin-left: 0.3em"
+				@click="filterSelectElem.$el.click($event)"
+			/>
+			<MultiSelect
+				ref="filterSelectElem"
+				class="not-visible"
+				:showToggleAll="false"
+				scrollHeight="14.5rem"
+				v-model="selectedFilters"
+				:options="filterOptions"
+			>
 				<template #option="slotProps">
 					{{ slotProps.option }}
 				</template>
 			</MultiSelect>
 		</template>
 		<template #content>
-			<div ref="listElem" class="no-select drone-list" :class="{
-				'left-bar-stucking': leftStucking,
-				'status-hide': !enabledColumns.status.value,
-				'mode-hide': !enabledColumns.mode.value,
-				'voltage-hide': !enabledColumns.voltage.value,
-				'current-hide': !enabledColumns.current.value ,
-				'remaining-hide': !enabledColumns.remaining.value,
-				'gps-type-hide': !enabledColumns['gps-type'].value,
-				'gps-hide': !enabledColumns.gps.value,
-				'relpos-hide': !enabledColumns.relpos.value,
-				'ping-hide': !enabledColumns.ping.value,
-			}">
+			<div
+				ref="listElem"
+				class="no-select drone-list"
+				:class="{
+					'left-bar-stucking': leftStucking,
+					'status-hide': !enabledColumns.status.value,
+					'mode-hide': !enabledColumns.mode.value,
+					'voltage-hide': !enabledColumns.voltage.value,
+					'current-hide': !enabledColumns.current.value,
+					'remaining-hide': !enabledColumns.remaining.value,
+					'gps-type-hide': !enabledColumns['gps-type'].value,
+					'gps-hide': !enabledColumns.gps.value,
+					'relpos-hide': !enabledColumns.relpos.value,
+					'ping-hide': !enabledColumns.ping.value,
+				}"
+			>
 				<!-- TODO: width animation when filter changed -->
 				<div class="drone-list-header">
 					<div ref="listHeaderIdElem" class="id">ID</div>
@@ -407,34 +436,34 @@ onMounted(() => {
 	width: 15em;
 }
 .ping {
-	width: 3.8em;
+	width: 4.2em;
 }
 
-.status-hide >>> .status {
+.status-hide :deep(.status) {
 	display: none;
 }
-.mode-hide >>> .mode {
+.mode-hide :deep(.mode) {
 	display: none;
 }
-.voltage-hide >>> .voltage {
+.voltage-hide :deep(.voltage) {
 	display: none;
 }
-.current-hide >>> .current {
+.current-hide :deep(.current) {
 	display: none;
 }
-.remaining-hide >>> .remaining {
+.remaining-hide :deep(.remaining) {
 	display: none;
 }
-.gps-type-hide >>> .gps-type {
+.gps-type-hide :deep(.gps-type) {
 	display: none;
 }
-.gps-hide >>> .gps {
+.gps-hide :deep(.gps) {
 	display: none;
 }
-.relpos-hide >>> .relpos {
+.relpos-hide :deep(.relpos) {
 	display: none;
 }
-.ping-hide >>> .ping {
+.ping-hide :deep(.ping) {
 	display: none;
 }
 
