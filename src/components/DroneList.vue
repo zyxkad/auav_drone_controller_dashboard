@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { computed, ref, reactive } from 'vue'
+import { computed, ref, reactive, onMounted } from 'vue'
+import Button from 'primevue/button'
 import Card from 'primevue/card'
 import ContextMenu from 'primevue/contextmenu'
 import type { MenuItem } from 'primevue/menuitem'
+import MultiSelect from 'primevue/multiselect'
 import { useToast } from 'primevue/usetoast'
 import DroneItem from './DroneItem.vue'
-import type { ColorInfo, DroneInfo } from '@/api'
+import { DroneAction, type ColorInfo, type DroneInfo } from '@/api'
+import * as api from '@/api/instance'
+import { FlightMode } from '@/data/ardupilot'
 
 const props = defineProps<{
 	drones: ReadonlyMap<number, DroneInfo>
@@ -20,30 +24,89 @@ const toast = useToast()
 const menu = ref<InstanceType<typeof ContextMenu>>()
 const selected = reactive<number[]>([])
 
+const filterSelectElem = ref()
+const filterOptions = [
+	'Status', 'Mode', 'Voltage', 'Current', 'Remaining', 'GPS Type', 'GPS', 'Relative Pos', 'Ping',
+]
+const selectedFilters = ref(Array.from(filterOptions))
+const enabledColumns = {
+	status: computed(() => selectedFilters.value.includes('Status')),
+	mode: computed(() => selectedFilters.value.includes('Mode')),
+	voltage: computed(() => selectedFilters.value.includes('Voltage')),
+	current: computed(() => selectedFilters.value.includes('Current')),
+	remaining: computed(() => selectedFilters.value.includes('Remaining')),
+	'gps-type': computed(() => selectedFilters.value.includes('GPS Type')),
+	gps: computed(() => selectedFilters.value.includes('GPS')),
+	relpos: computed(() => selectedFilters.value.includes('Relative Pos')),
+	ping: computed(() => selectedFilters.value.includes('Ping')),
+}
+
+const listElem = ref()
+const listHeaderIdElem = ref()
+const leftStucking = ref(false)
+
 const sortMethod = ref<(a: DroneInfo, b: DroneInfo) => number>((a, b) => a.id - b.id)
 const dronesSorted = computed(() => Array.from(props.drones.values()).sort(sortMethod.value))
 
-function doHome(): void {
-	// TODO
+async function doDroneAction(action: DroneAction): Promise<void> {
+	const drones = Array.from(selected.length === 0 ? props.drones.keys() : selected)
+	if (drones.length === 0) {
+		toast.add({
+			severity: 'error',
+			summary: 'Drone Action Failed',
+			detail: 'No selected drones',
+			life: 1500,
+		})
+		return
+	}
+	const resp = await api.requestDroneAction(action, drones)
+	if (resp.ok) {
+		toast.add({
+			severity: 'info',
+			summary: 'Drone Action Requested',
+			detail: `Requested ${drones.length} drones to ${action}`,
+			life: 1000,
+		})
+	} else {
+		toast.add({
+			severity: 'error',
+			summary: 'Drone Action Failed',
+			detail: resp.toString(),
+			life: 4000,
+		})
+	}
 }
 
-function doLand(): void {
-	// TODO
+async function doChangeMode(mode: FlightMode): Promise<void> {
+	const drones = Array.from(selected.length === 0 ? props.drones.keys() : selected)
+	if (drones.length === 0) {
+		toast.add({
+			severity: 'error',
+			summary: 'Drone Action Failed',
+			detail: 'No selected drones',
+			life: 1500,
+		})
+		return
+	}
+	const resp = await api.changeDroneMode(mode, drones)
+	if (resp.ok) {
+		toast.add({
+			severity: 'info',
+			summary: 'Mode Change Successed',
+			detail: `Changed ${drones.length} drones to ${mode}`,
+			life: 1000,
+		})
+	} else {
+		toast.add({
+			severity: 'error',
+			summary: 'Mode Change Failed',
+			detail: resp.toString(),
+			life: 4000,
+		})
+	}
 }
 
-function doDisarm(): void {
-	// TODO
-}
-
-function doSleep(): void {
-	// TODO
-}
-
-function doWakeup(): void {
-	// TODO
-}
-
-function doControlLight(): void {
+async function doControlLight(): Promise<void> {
 	// TODO
 }
 
@@ -66,12 +129,30 @@ async function doCopyGPS(): Promise<void> {
 	})
 }
 
+const changeModeMenuItem: MenuItem = {
+	label: 'Change Mode',
+	icon: 'pi pi-hammer',
+	class: 'change-mode-context-item',
+	items: Object.values(FlightMode)
+		.filter(Number.isInteger as (v: unknown) => v is FlightMode)
+		.sort((a, b) => a - b)
+		.map<MenuItem>((m) => ({ label: `(${m}) ${FlightMode[m]}`, command: () => doChangeMode(m) })),
+}
+
 const globalItems: MenuItem[] = [
-	{ label: 'Home All', icon: 'pi pi-home', command: doHome },
-	{ label: 'Land All', icon: 'pi pi-cloud-download', command: doLand },
-	{ label: 'Disarm All', icon: 'pi pi-ban', command: doDisarm },
-	{ label: 'Sleep All', icon: 'pi pi-moon', command: doSleep },
-	{ label: 'Wakeup All', icon: 'pi pi-eye', command: doWakeup },
+	{
+		label: 'Actions',
+		icon: 'pi pi-bars',
+		items: [
+			{ label: 'Hold All', icon: 'pi pi-hourglass', command: () => doDroneAction(DroneAction.HOLD) },
+			{ label: 'Home All', icon: 'pi pi-home', command: () => doDroneAction(DroneAction.HOME) },
+			{ label: 'Land All', icon: 'pi pi-cloud-download', command: () => doDroneAction(DroneAction.LAND) },
+			{ label: 'Disarm All', icon: 'pi pi-ban', command: () => doDroneAction(DroneAction.DISARM) },
+		],
+	},
+	changeModeMenuItem,
+	{ label: 'Sleep All', icon: 'pi pi-moon', command: () => doDroneAction(DroneAction.SLEEP) },
+	{ label: 'Wakeup All', icon: 'pi pi-eye', command: () => doDroneAction(DroneAction.WAKEUP) },
 	{ label: 'Control All Lights', icon: 'pi pi-sliders-v', command: doControlLight },
 	{ label: 'Copy All GPS', icon: 'pi pi-globe', command: doCopyGPS },
 ]
@@ -81,13 +162,15 @@ const individualItems: MenuItem[] = [
 		label: 'Actions',
 		icon: 'pi pi-bars',
 		items: [
-			{ label: 'Home', icon: 'pi pi-home', command: doHome },
-			{ label: 'Land', icon: 'pi pi-cloud-download', command: doLand },
-			{ label: 'Disarm', icon: 'pi pi-ban', command: doDisarm },
+			{ label: 'Hold', icon: 'pi pi-hourglass', command: () => doDroneAction(DroneAction.HOLD) },
+			{ label: 'Home', icon: 'pi pi-home', command: () => doDroneAction(DroneAction.HOME) },
+			{ label: 'Land', icon: 'pi pi-cloud-download', command: () => doDroneAction(DroneAction.LAND) },
+			{ label: 'Disarm', icon: 'pi pi-ban', command: () => doDroneAction(DroneAction.DISARM) },
 		],
 	},
-	{ label: 'Sleep', icon: 'pi pi-moon', command: doSleep },
-	{ label: 'Wakeup', icon: 'pi pi-eye', command: doWakeup },
+	changeModeMenuItem,
+	{ label: 'Sleep', icon: 'pi pi-moon', command: () => doDroneAction(DroneAction.SLEEP) },
+	{ label: 'Wakeup', icon: 'pi pi-eye', command: () => doDroneAction(DroneAction.WAKEUP) },
 	{ label: 'Control Lights', icon: 'pi pi-sliders-v', command: doControlLight },
 	{ label: 'Copy GPS', icon: 'pi pi-globe', command: doCopyGPS },
 ]
@@ -97,20 +180,22 @@ const groupItems: MenuItem[] = [
 		label: 'Actions',
 		icon: 'pi pi-bars',
 		items: [
-			{ label: 'Home Selected', icon: 'pi pi-home', command: doHome },
-			{ label: 'Land Selected', icon: 'pi pi-cloud-download', command: doLand },
-			{ label: 'Disarm Selected', icon: 'pi pi-ban', command: doDisarm },
+			{ label: 'Hold Selected', icon: 'pi pi-hourglass', command: () => doDroneAction(DroneAction.HOLD) },
+			{ label: 'Home Selected', icon: 'pi pi-home', command: () => doDroneAction(DroneAction.HOME) },
+			{ label: 'Land Selected', icon: 'pi pi-cloud-download', command: () => doDroneAction(DroneAction.LAND) },
+			{ label: 'Disarm Selected', icon: 'pi pi-ban', command: () => doDroneAction(DroneAction.DISARM) },
 		],
 	},
-	{ label: 'Sleep Selected', icon: 'pi pi-moon', command: doSleep },
-	{ label: 'Wakeup Selected', icon: 'pi pi-eye', command: doWakeup },
+	changeModeMenuItem,
+	{ label: 'Sleep Selected', icon: 'pi pi-moon', command: () => doDroneAction(DroneAction.SLEEP) },
+	{ label: 'Wakeup Selected', icon: 'pi pi-eye', command: () => doDroneAction(DroneAction.WAKEUP) },
 	{ label: 'Control Selected Lights', icon: 'pi pi-sliders-v', command: doControlLight },
 	{ label: 'Copy Selected GPS', icon: 'pi pi-globe', command: doCopyGPS },
 ]
 
 const menuItems = ref(globalItems)
 
-let lastClicked: number | null = null
+let lastSelected: number | null = null
 
 function onClickDrone(event: PointerEvent, id?: number) {
 	if ((event as any)._processed) {
@@ -125,16 +210,16 @@ function onClickDrone(event: PointerEvent, id?: number) {
 		if (event.shiftKey) {
 		} else if (!event.metaKey) {
 			selected.splice(0)
-			lastClicked = null
+			lastSelected = null
 		}
 		return
 	}
 	if (!event.metaKey) {
 		selected.splice(0)
-		if (!event.shiftKey || lastClicked === null) {
+		if (!event.shiftKey || lastSelected === null) {
 			selected.push(id)
-		} else if (lastClicked !== id) {
-			const lastIndex = dronesSorted.value.findIndex((d) => d.id === lastClicked)
+		} else if (lastSelected !== id) {
+			const lastIndex = dronesSorted.value.findIndex((d) => d.id === lastSelected)
 			const curIndex = dronesSorted.value.findIndex((d) => d.id === id)
 			const lowIndex = Math.min(curIndex, lastIndex)
 			const highIndex = Math.max(curIndex, lastIndex)
@@ -150,7 +235,7 @@ function onClickDrone(event: PointerEvent, id?: number) {
 			selected.push(id)
 		}
 	}
-	lastClicked = id
+	lastSelected = id
 }
 
 function onContextMenu(event: PointerEvent, id?: number) {
@@ -164,7 +249,7 @@ function onContextMenu(event: PointerEvent, id?: number) {
 			selected.splice(0)
 			selected.push(id)
 		}
-		lastClicked = id
+		lastSelected = id
 	}
 	switch (selected.length) {
 		case 0:
@@ -178,23 +263,55 @@ function onContextMenu(event: PointerEvent, id?: number) {
 	}
 	menu.value?.show(event)
 }
+
+onMounted(() => {
+	const observer = new IntersectionObserver(([{isIntersecting}]) => {
+		leftStucking.value = !isIntersecting
+	}, {
+		root: listElem.value,
+		rootMargin: '0px',
+		threshold: 1,
+	})
+	observer.observe(listHeaderIdElem.value)
+})
 </script>
 
 <template>
 	<Card class="card-overflow-hidden" @click="onClickDrone" @contextmenu.stop="onContextMenu">
 		<template #title>
-			<h3 class="no-select no-margin">Drones</h3>
+			<h3 class="no-select no-margin inline-block">Drones</h3>
+			<Button text rounded severity="secondary" icon="pi pi-filter" style="margin-left: 0.3em" @click="filterSelectElem.$el.click($event)" />
+			<MultiSelect ref="filterSelectElem" class="not-visible" :showToggleAll="false" scrollHeight="14.5rem" v-model="selectedFilters" :options="filterOptions">
+				<template #option="slotProps">
+					{{ slotProps.option }}
+				</template>
+			</MultiSelect>
 		</template>
 		<template #content>
-			<div class="no-select drone-list">
+			<div ref="listElem" class="no-select drone-list" :class="{
+				'left-bar-stucking': leftStucking,
+				'status-hide': !enabledColumns.status.value,
+				'mode-hide': !enabledColumns.mode.value,
+				'voltage-hide': !enabledColumns.voltage.value,
+				'current-hide': !enabledColumns.current.value ,
+				'remaining-hide': !enabledColumns.remaining.value,
+				'gps-type-hide': !enabledColumns['gps-type'].value,
+				'gps-hide': !enabledColumns.gps.value,
+				'relpos-hide': !enabledColumns.relpos.value,
+				'ping-hide': !enabledColumns.ping.value,
+			}">
+				<!-- TODO: width animation when filter changed -->
 				<div class="drone-list-header">
-					<div class="id">ID</div>
+					<div ref="listHeaderIdElem" class="id">ID</div>
 					<div class="status">STATUS</div>
+					<div class="mode">MODE</div>
 					<div class="voltage">VOLTAGE</div>
 					<div class="current">CURRENT</div>
 					<div class="remaining">POWER</div>
 					<div class="gps-type">GPS_TYPE</div>
 					<div class="gps">GPS - (LAT, LON, ALT)</div>
+					<div class="relpos">[EAST, NORTH, HEIGHT]</div>
+					<div class="ping">PING</div>
 					<div class="last-activate">LAST_ACTIVATE</div>
 				</div>
 				<DroneItem
@@ -221,6 +338,7 @@ function onContextMenu(event: PointerEvent, id?: number) {
 	height: 100%;
 	font-size: 0.88rem;
 	overflow: auto;
+	white-space: nowrap;
 }
 
 .drone-list > * {
@@ -236,6 +354,7 @@ function onContextMenu(event: PointerEvent, id?: number) {
 	align-items: center;
 	width: 100%;
 	height: 3rem;
+	line-height: 3rem;
 	min-width: max-content;
 	border-bottom: var(--p-surface-300) solid 2px;
 	background-color: var(--p-card-background);
@@ -244,37 +363,92 @@ function onContextMenu(event: PointerEvent, id?: number) {
 }
 
 .drone-list-header > * {
+	height: 100%;
 	flex-shrink: 0;
 	margin-right: 0.5em;
 }
 
 .id {
-	width: 2em;
-	margin-left: 2.6rem;
+	position: sticky;
+	left: -1px;
+	box-sizing: content-box;
+	width: 4.2em;
+	padding-right: 0.6em;
+	text-align: right;
+	margin-right: 0.4em;
+	border-right: #0000 solid 1px;
+	background-color: var(--p-card-background);
+}
+
+.left-bar-stucking .id {
+	border-right-color: var(--p-surface-300);
 }
 
 .status {
 	width: 5em;
 }
-
+.mode {
+	width: 5.5em;
+}
 .voltage,
 .current {
 	width: 4.2em;
 }
-
 .remaining {
 	width: 3.5em;
 }
-
 .gps-type {
 	width: 5.5em;
 }
-
 .gps {
 	width: 18.5em;
+}
+.relpos {
+	width: 15em;
+}
+.ping {
+	width: 3.8em;
+}
+
+.status-hide >>> .status {
+	display: none;
+}
+.mode-hide >>> .mode {
+	display: none;
+}
+.voltage-hide >>> .voltage {
+	display: none;
+}
+.current-hide >>> .current {
+	display: none;
+}
+.remaining-hide >>> .remaining {
+	display: none;
+}
+.gps-type-hide >>> .gps-type {
+	display: none;
+}
+.gps-hide >>> .gps {
+	display: none;
+}
+.relpos-hide >>> .relpos {
+	display: none;
+}
+.ping-hide >>> .ping {
+	display: none;
 }
 
 .drone[selected='true'] {
 	background-color: var(--p-contextmenu-item-focus-background);
+}
+</style>
+
+<style>
+.change-mode-context-item > .p-contextmenu-submenu {
+	max-height: 12.5rem;
+	overflow-y: auto;
+	font-size: 0.9em;
+	font-family: monospace;
+	white-space: nowrap;
 }
 </style>

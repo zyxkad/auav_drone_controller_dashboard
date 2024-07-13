@@ -7,11 +7,10 @@ import DroneOverview from '@/components/DroneOverview.vue'
 import LogBlock from '@/components/LogBlock.vue'
 import RtkStatus from '@/components/RtkStatus.vue'
 import LeftRightButton from '@/components/LeftRightButton.vue'
-import type { ColorInfo, DroneInfo, DroneStatusInfo, DronePositionInfo, LogMessage } from '@/api'
+import type { ColorInfo, DroneInfo, DroneStatusInfo, DronePositionInfo, DronePingInfo, LogMessage } from '@/api'
 import { DroneStatus } from '@/api'
-import * as api from '@/api/instance'
 import { onAwsEvent, sendAwsMessage } from '@/stores/aws'
-import { flightModeToString } from '@/data/flight_modes'
+import { FlightMode } from '@/data/ardupilot'
 
 const toast = useToast()
 
@@ -117,9 +116,9 @@ onAwsEvent<(DroneStatusInfo & DronePositionInfo)[]>('drone-list', ({ data }) => 
 	for (const item of data) {
 		const d = drones.get(item.id)
 		if (d) {
-			Object.assign(d, item, { mode: flightModeToString(item.mode) })
+			Object.assign(d, item, { mode: FlightMode[item.mode] || 'UNKNOWN' })
 		} else {
-			drones.set(item.id, Object.assign(item, { mode: flightModeToString(item.mode) }))
+			drones.set(item.id, Object.assign(item, { mode: FlightMode[item.mode] || 'UNKNOWN' }))
 		}
 	}
 })
@@ -129,10 +128,18 @@ onAwsEvent<DroneStatusInfo>('drone-info', ({ data }) => {
 	if (!d) {
 		return
 	}
-	Object.assign(d, data, { mode: flightModeToString(data.mode) })
+	Object.assign(d, data, { mode: FlightMode[data.mode] || 'UNKNOWN' })
 })
 
-onAwsEvent<DronePositionInfo>('drone-pos-info', ({ data }) => {
+onAwsEvent<DronePositionInfo>('drone-pos', ({ data }) => {
+	const d = drones.get(data.id)
+	if (!d) {
+		return
+	}
+	Object.assign(d, data)
+})
+
+onAwsEvent<DronePingInfo>('drone-ping', ({ data }) => {
 	const d = drones.get(data.id)
 	if (!d) {
 		return

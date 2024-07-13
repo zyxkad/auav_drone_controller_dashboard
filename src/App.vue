@@ -3,10 +3,12 @@ import { ref, onMounted } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import Button from 'primevue/button'
 import Toast from 'primevue/toast'
+import DirectorDialog from '@/components/DirectorDialog.vue'
 import * as api from '@/api/instance'
 
 const loraConnected = ref(true)
 const rtkConnected = ref(true)
+const director = ref<typeof DirectorDialog>()
 
 onMounted(() => {
 	api.connectedLoraPort().then((config) => {
@@ -35,18 +37,16 @@ onMounted(() => {
 			<RouterLink to="/setup/satellite">
 				<Button severity="info" label="Satellite" />
 			</RouterLink>
+			<Button severity="contrast" label="Director" @click="director?.open()" />
 		</nav>
 	</header>
 
 	<RouterView v-slot="{ Component }">
 		<KeepAlive include="HomeView">
-			<component
-				:is="Component"
-				@lora-bind="loraConnected = true"
-				@rtk-bind="rtkConnected = true"
-			/>
+			<component :is="Component" @lora-bind="loraConnected = true" @rtk-bind="rtkConnected = true" />
 		</KeepAlive>
 	</RouterView>
+	<DirectorDialog ref="director" />
 	<Toast position="top-right" />
 </template>
 
@@ -83,8 +83,7 @@ header {
 	align-items: center;
 }
 
-.head-nav a {
+.head-nav > * {
 	margin-left: 1rem;
-	color: var(--primary-color);
 }
 </style>

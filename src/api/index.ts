@@ -92,6 +92,7 @@ export enum DroneStatus {
 	SLEEPING = 'SLEEPING',
 	ARMED = 'ARMED',
 	TAKENOFF = 'TAKENOFF',
+	NAV = 'NAV',
 	ERROR = 'ERROR',
 }
 
@@ -140,11 +141,16 @@ export interface GPSData {
 	alt: number // in meters
 }
 
-interface RotateData {
-	// TODO: not good structure
-	0: number
-	1: number
-	2: number
+export interface Vec3 {
+	x: number
+	y: number
+	z: number
+}
+
+export interface RotateData {
+	roll: number
+	pitch: number
+	yaw: number
 }
 
 export interface BatteryStat {
@@ -168,6 +174,7 @@ export interface DroneStatusInfo {
 	status: DroneStatus
 	mode: number
 	battery: BatteryStat
+	home: GPSData
 	lastActivate: number // epoch in milliseconds
 	extra?: DroneExtraInfo | null
 }
@@ -179,14 +186,22 @@ export interface DronePositionInfo {
 	rotate: RotateData
 }
 
+export interface DronePingInfo {
+	id: number
+	bootTime: number // epoch in milliseconds
+	ping: number // µs
+}
+
 export type DroneInfo = {
 	id: number
 	status?: DroneStatus
-	mode?: string
+	mode?: number
 	battery?: BatteryStat
 	gpsType?: GPSType
 	gps?: GPSData
+	home?: GPSData
 	rotate?: RotateData
+	ping?: number
 	lastActivate?: number
 	extra?: DroneExtraInfo | null
 }
@@ -203,4 +218,27 @@ export interface LogMessage {
 	time: number
 	lvl: string
 	msg: string
+}
+
+export interface DirectorPos {
+	latitude: number
+	longitude: number
+	altitude: number
+	heading: number
+}
+
+export enum DroneAction {
+	ARM = 'ARM',
+	DISARM = 'DISARM',
+	HOME = 'HOME',
+	LAND = 'LAND',
+	TAKEOFF = 'TAKEOFF',
+	HOLD = 'HOLD',
+	SLEEP = 'SLEEP',
+	WAKEUP = 'WAKEUP',
+}
+
+export interface DirectorDrone {
+	id: number
+	action: DroneAction
 }

@@ -1,14 +1,8 @@
 import axios from 'axios'
 
 export * from './index'
-import {
-	RespStatus,
-	type Device,
-	type LoraConfig,
-	type RTKConfig,
-	type RTKInfo,
-	type SatelliteConfig,
-} from './index'
+import { RespStatus } from './index'
+import type { Device, LoraConfig, RTKConfig, RTKInfo, SatelliteConfig, DroneAction } from './index'
 
 interface AvaliableDevicesResp {
 	devices: Device[]
@@ -89,6 +83,26 @@ export async function getSatelliteConfig(): Promise<SatelliteConfig> {
 export async function updateSatelliteConfig(config: SatelliteConfig): Promise<RespStatus> {
 	return await axios
 		.post(`/api/satellite/config`, config)
+		.then(() => RespStatus.OK)
+		.catch(RespStatus.fromError)
+}
+
+export async function requestDroneAction(action: DroneAction, drones: number | number[]): Promise<RespStatus> {
+	return await axios
+		.post(`/api/drone/action`, {
+			action: action,
+			d: drones,
+		})
+		.then(() => RespStatus.OK)
+		.catch(RespStatus.fromError)
+}
+
+export async function changeDroneMode(mode: number, drones: number | number[]): Promise<RespStatus> {
+	return await axios
+		.post(`/api/drone/mode`, {
+			mode: mode,
+			d: drones,
+		})
 		.then(() => RespStatus.OK)
 		.catch(RespStatus.fromError)
 }

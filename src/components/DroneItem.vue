@@ -2,6 +2,8 @@
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import ColorPicker from 'primevue/colorpicker'
 import { DroneStatus, GPSType, type ColorInfo, type DroneInfo } from '@/api'
+import { FlightMode } from '@/data/ardupilot'
+import { calcRelativePos } from '@/utils/gps'
 
 const props = defineProps<{
 	drone: DroneInfo
@@ -12,6 +14,13 @@ const emit = defineEmits<{
 }>()
 
 const now = ref(Date.now())
+const relpos = computed(() => {
+	if (!props.drone.gps || !props.drone.home) {
+		return null
+	}
+	return calcRelativePos(props.drone.gps, props.drone.home)
+})
+
 const picker = ref<InstanceType<typeof ColorPicker>>()
 const droneLedColor = computed({
 	get(): ColorInfo {
@@ -22,10 +31,13 @@ const droneLedColor = computed({
 	},
 })
 
-function formatLastActivate(ts: number): string {
-	let dur = now.value - ts
+function formatMicroseconds(dur: number): string {
 	if (dur <= 1000) {
-		return 'now'
+		return Math.floor(dur) + 'µs'
+	}
+	dur /= 1000
+	if (dur <= 1000) {
+		return Math.floor(dur) + 'ms'
 	}
 	dur /= 1000
 	if (dur < 61) {
@@ -43,6 +55,14 @@ function formatLastActivate(ts: number): string {
 	return Math.floor(dur) + 'd'
 }
 
+function formatLastActivate(ts: number): string {
+	let dur = now.value - ts
+	if (dur <= 1000) {
+		return 'now'
+	}
+	return formatMicroseconds(dur * 1000)
+}
+
 let timeUpdater: ReturnType<typeof setInterval> | undefined = undefined
 onMounted(() => {
 	timeUpdater = setInterval(() => {
@@ -57,9 +77,12 @@ onBeforeUnmount(() => {
 
 <template>
 	<div class="drone">
-		<div class="status-light" :status="drone.status"></div>
-		<b class="id">{{ drone.id }}</b>
-		<b class="status">{{ drone.status }}</b>
+		<div class="sticky-box">
+			<div class="status-light" :status="drone.status"></div>
+			<b class="id">{{ drone.id }}</b>
+		</div>
+		<b class="status">{{ drone.status || '--' }}</b>
+		<b class="mode">{{ drone.mode !== undefined ? FlightMode[drone.mode] : '--' }}</b>
 		<div class="voltage">{{ drone.battery?.voltage.toFixed(3) || '--' }}</div>
 		<div class="current">{{ drone.battery?.current.toFixed(3) || '--' }}</div>
 		<b class="remaining">{{ drone.battery ? (drone.battery.remaining * 100).toFixed(1) : '--' }}</b>
@@ -71,9 +94,14 @@ onBeforeUnmount(() => {
 			>, <span>{{ drone.gps?.alt.toFixed(2) || '--' }}</span
 			>)
 		</div>
-		<b class="last-activate">{{
-			drone.lastActivate ? formatLastActivate(drone.lastActivate) : 'never'
-		}}</b>
+		<b class="relpos">
+			[<span>{{ relpos?.x.toFixed(2) || '--' }}</span
+			>, <span>{{ relpos?.y.toFixed(2) || '--' }}</span
+			>, <span>{{ relpos?.z.toFixed(2) || '--' }}</span
+			>]
+		</b>
+		<div class="ping">{{ drone.ping ? formatMicroseconds(drone.ping) : '--' }}</div>
+		<b class="last-activate">{{ drone.lastActivate ? formatLastActivate(drone.lastActivate) : 'never' }}</b>
 		<!-- TODO: Only need a few colors and flash for LED control -->
 		<ColorPicker
 			ref="picker"
@@ -105,10 +133,30 @@ onBeforeUnmount(() => {
 	margin-right: 0.5em;
 }
 
+.sticky-box {
+	position: sticky;
+	left: -1px;
+	box-sizing: content-box;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	width: 4.6em;
+	height: 100%;
+	padding-right: 0.2em;
+	margin-right: 0.4em;
+	border-right: #0000 solid 1px;
+	background-color: var(--p-card-background);
+}
+
+.left-bar-stucking .sticky-box {
+	border-right-color: var(--p-surface-300);
+}
+
 .status-light {
 	width: 1.6rem;
 	height: 1.6rem;
-	margin: 0 0.8rem 0 0.2rem;
+	margin-left: 0.2rem;
 	border-radius: 50%;
 	transition: 1s background-color ease-out;
 	background-color: var(--flash-out);
@@ -142,6 +190,12 @@ onBeforeUnmount(() => {
 	animation: none;
 }
 
+.status-light[status='NAV'] {
+	--flash-from: var(--p-yellow-500);
+	--flash-to: var(--p-yellow-400);
+	animation-duration: 2s;
+}
+
 .status-light[status='ERROR'] {
 	--flash-to: var(--p-red-500);
 	animation-duration: 1s;
@@ -150,14 +204,37 @@ onBeforeUnmount(() => {
 .id {
 	width: 2em;
 }
-
 .status {
 	width: 5em;
 }
-
+.mode {
+	width: 5.5em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
 .voltage,
 .current {
 	width: 4.2em;
+}
+.remaining {
+	width: 3.5em;
+	padding-right: 0.5em;
+	text-align: right;
+}
+.gps-type {
+	width: 5.5em;
+}
+.gps {
+	width: 18.5em;
+}
+.relpos {
+	width: 15em;
+}
+.ping {
+	width: 3.8em;
+}
+.last-activate {
+	width: 3rem;
 }
 
 .voltage::after {
@@ -170,27 +247,9 @@ onBeforeUnmount(() => {
 	font-size: 0.8em;
 }
 
-.remaining {
-	width: 3.5em;
-	padding-right: 0.5em;
-	text-align: right;
-}
-
 .remaining::after {
 	content: '%';
 	font-size: 0.8em;
-}
-
-.gps-type {
-	width: 5.5em;
-}
-
-.gps {
-	width: 18.5em;
-}
-
-.last-activate {
-	width: 3rem;
 }
 
 .led {

@@ -99,15 +99,11 @@ onMounted(() => {
 						<template #value="slotProps">
 							<template v-if="avaliableDevices === null"> Loading ... </template>
 							<template v-else>
-								{{ avaliableDevices[slotProps.value].name }} ({{
-									avaliableDevices[slotProps.value].description
-								}})
+								{{ avaliableDevices[slotProps.value].name }} ({{ avaliableDevices[slotProps.value].description }})
 							</template>
 						</template>
 						<template #option="slotProps" v-if="avaliableDevices !== null">
-							{{ avaliableDevices[slotProps.option].name }} ({{
-								avaliableDevices[slotProps.option].description
-							}})
+							{{ avaliableDevices[slotProps.option].name }} ({{ avaliableDevices[slotProps.option].description }})
 						</template>
 					</Select>
 				</div>

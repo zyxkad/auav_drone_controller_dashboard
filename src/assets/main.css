@@ -46,6 +46,10 @@
 	white-space: nowrap;
 }
 
+.inline-block {
+	display: inline-block;
+}
+
 .flex-row-center {
 	display: flex;
 	flex-direction: row;
@@ -58,6 +62,13 @@
 
 .flex-end {
 	justify-content: flex-end;
+}
+
+.not-visible {
+	width: 0 !important;
+	height: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
 }
 
 a {

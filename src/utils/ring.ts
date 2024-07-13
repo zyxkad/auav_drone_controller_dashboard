@@ -63,10 +63,7 @@ export class RingBuffer<T> extends Array<T> {
 		}
 		const oldend = this.end
 		this.end = (oldend + adding) % this._realLength
-		if (
-			(this.start <= this.end && this.end < oldend) ||
-			(oldend < this.start && this.start <= this.end)
-		) {
+		if ((this.start <= this.end && this.end < oldend) || (oldend < this.start && this.start <= this.end)) {
 			this.start = (this.end + 1) % this._realLength
 		}
 		return this.avaliable
@@ -122,12 +119,7 @@ export class RingBuffer<T> extends Array<T> {
 				}
 				return Reflect.get(target, key)
 			},
-			set(
-				target: RingBuffer<T>,
-				key: string | symbol,
-				value: any,
-				recvier: RingBuffer<T>,
-			): boolean {
+			set(target: RingBuffer<T>, key: string | symbol, value: any, recvier: RingBuffer<T>): boolean {
 				// if (typeof key === 'string' && /^[1-9][0-9]*$/.test(key)) {
 				// 	recvier.set(parseInt(key, 10), value)
 				// 	return true

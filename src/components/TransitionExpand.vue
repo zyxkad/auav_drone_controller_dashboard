@@ -66,13 +66,7 @@ function onafter(ele: Element) {
 </script>
 
 <template>
-	<Transition
-		name="expand"
-		@enter="onenter"
-		@after-enter="onafter"
-		@before-leave="onleave"
-		@after-leave="onafter"
-	>
+	<Transition name="expand" @enter="onenter" @after-enter="onafter" @before-leave="onleave" @after-leave="onafter">
 		<slot />
 	</Transition>
 </template>

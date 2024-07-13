@@ -24,6 +24,7 @@ const sleepingDrones = computed(() => countDrones((d) => d.status === DroneStatu
 const readyDrones = computed(() => countDrones((d) => d.status === DroneStatus.READY))
 const armingDrones = computed(() => countDrones((d) => d.status === DroneStatus.ARMED))
 const flyingDrones = computed(() => countDrones((d) => d.status === DroneStatus.TAKENOFF))
+const navDrones = computed(() => countDrones((d) => d.status === DroneStatus.NAV))
 const errorDrones = computed(() => countDrones((d) => d.status === DroneStatus.ERROR))
 </script>
 
@@ -35,35 +36,39 @@ const errorDrones = computed(() => countDrones((d) => d.status === DroneStatus.E
 		<template #content>
 			<div class="status-box">
 				<div class="total">
-					<h4>Total</h4>
+					<h4 class="label">Total</h4>
 					<b>{{ droneCount }}</b>
 				</div>
 				<div class="connecting">
-					<h4>Connected</h4>
+					<h4 class="label">Connect</h4>
 					<b>{{ connectedDrones }}</b>
 				</div>
 				<div class="missing">
-					<h4>Missing</h4>
+					<h4 class="label">Missing</h4>
 					<b>{{ missingDrones }}</b>
 				</div>
 				<div class="sleeping">
-					<h4>Sleeping</h4>
+					<h4 class="label">Sleep</h4>
 					<b>{{ sleepingDrones }}</b>
 				</div>
 				<div class="ready">
-					<h4>Ready</h4>
+					<h4 class="label">Ready</h4>
 					<b>{{ readyDrones }}</b>
 				</div>
 				<div class="arming">
-					<h4>Arming</h4>
+					<h4 class="label">Arming</h4>
 					<b>{{ armingDrones }}</b>
 				</div>
 				<div class="flying">
-					<h4>Taken Off</h4>
+					<h4 class="label">Hover</h4>
 					<b>{{ flyingDrones }}</b>
 				</div>
+				<div class="navigating">
+					<h4 class="label">Auto</h4>
+					<b>{{ navDrones }}</b>
+				</div>
 				<div class="errors">
-					<h4>Errors</h4>
+					<h4 class="label">Errors</h4>
 					<b>{{ errorDrones }}</b>
 				</div>
 			</div>
@@ -72,19 +77,15 @@ const errorDrones = computed(() => countDrones((d) => d.status === DroneStatus.E
 </template>
 
 <style scoped>
-h4 {
-	margin: 0;
-}
-
 .status-box {
 	display: grid;
 	width: 100%;
 	height: 100%;
 	grid-gap: 0.5rem;
 	grid-template:
-		'. L C M .' 3rem
-		'S R A T E' 3rem
-		/ auto auto auto auto auto;
+		'L C M N E' 3rem
+		'S R A T .' 3rem
+		/ 1fr 1fr 1fr 1fr 1fr;
 	font-family: monospace;
 	white-space: nowrap;
 }
@@ -116,7 +117,71 @@ h4 {
 .flying {
 	grid-area: T;
 }
+.navigating {
+	grid-area: N;
+}
 .errors {
 	grid-area: E;
+}
+
+.label {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin: 0;
+}
+
+.label::before {
+	content: ' ';
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	margin: 0 0.4em 0 0;
+	border-radius: 50%;
+	transition: 1s background-color ease-out;
+	background-color: var(--flash-out);
+	--flash-from: var(--p-surface-400);
+	--flash-to: var(--p-surface-400);
+	animation: flash 1s infinite ease-out;
+}
+
+.missing > .label::before {
+	--flash-to: var(--p-orange-500);
+	animation-duration: 2.5s;
+}
+
+.ready > .label::before {
+	background-color: var(--p-green-600);
+	animation: none;
+}
+
+.sleeping > .label::before {
+	--flash-to: var(--p-cyan-500);
+	animation-duration: 4s;
+}
+
+.arming > .label::before {
+	--flash-from: var(--p-yellow-600);
+	--flash-to: var(--p-lime-500);
+}
+
+.flying > .label::before {
+	background-color: var(--p-yellow-500);
+	animation: none;
+}
+
+.navigating > .label::before {
+	--flash-from: var(--p-yellow-500);
+	--flash-to: var(--p-yellow-400);
+	animation-duration: 2s;
+}
+
+.errors > .label::before {
+	--flash-to: var(--p-red-500);
+	animation-duration: 1s;
+}
+
+.status-box > div > b {
+	padding-left: 0.9em;
 }
 </style>

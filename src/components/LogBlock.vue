@@ -65,8 +65,7 @@ function activeScroller(): void {
 			scrolling = false
 			return false
 		}
-		box.value.scrollTop =
-			scrollYTarget - box.value.clientHeight - diff + Math.max(diff * 0.1, minDist)
+		box.value.scrollTop = scrollYTarget - box.value.clientHeight - diff + Math.max(diff * 0.1, minDist)
 		return true
 	})
 }
