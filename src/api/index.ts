@@ -1,51 +1,48 @@
-import { AxiosError } from 'axios'
+import type { AxiosError, AxiosResponse } from 'axios'
 
-export class RespStatus {
-	static readonly OK = new RespStatus(200)
-	static readonly NOT_FOUND = new RespStatus(404, 'Resource not found')
-	static readonly CONFLICT = new RespStatus(409, 'Operition conflicts')
+export class RespStatus<T = void> {
+	static readonly OK = new RespStatus<void>(200, undefined)
 
-	readonly code: number
+	readonly status: number
+	readonly data: T
 	readonly message: string
-	constructor(code: number, message?: string) {
-		this.code = code
+	constructor(status: number, data: T, message?: string) {
+		this.status = status
+		this.data = data
 		this.message = message || ''
 	}
 
 	get ok(): boolean {
-		return 100 <= this.code && this.code < 400
+		return 100 <= this.status && this.status < 400
 	}
 
 	toString(): string {
-		let s = String(this.code)
+		let s = String(this.status)
 		if (this.message) {
 			s += ': ' + this.message
 		}
 		return s
 	}
 
-	static fromError(err: unknown) {
-		if (err instanceof AxiosError) {
-			if (err.response) {
-				const code = err.response.status
-				switch (code) {
-					case 404:
-						return RespStatus.NOT_FOUND
-					case 409:
-						return RespStatus.CONFLICT
-					default:
-						if (400 <= code && code < 600) {
-							const { data } = err.response
-							if (typeof data !== 'object') {
-								return new RespStatus(code, String(data))
-							}
-							return new RespStatus(code, data.message || data.error)
-						}
-				}
+	static fromAxios<T = void>(resp: AxiosResponse<T>): RespStatus<T> {
+		const { status, data } = resp
+		if (400 <= status && status < 600) {
+			if (typeof data !== 'object') {
+				return new RespStatus(status, undefined, String(data)) as RespStatus<T>
 			}
+			return new RespStatus(status, undefined, (data as any).message || (data as any).error) as RespStatus<T>
 		}
-		throw err
+		if (200 <= status && status < 400) {
+			return new RespStatus(status, resp.data)
+		}
+		throw new Error('Unexpected status code: ' + status)
 	}
+}
+
+export interface MultiOpResp {
+	targets: number
+	failed: number
+	errors: string[]
 }
 
 export interface Device {
@@ -175,7 +172,6 @@ export interface DroneStatusInfo {
 	mode: number
 	battery: BatteryStat
 	home: GPSData
-	lastActivate: number // epoch in milliseconds
 	extra?: DroneExtraInfo | null
 }
 
@@ -190,6 +186,7 @@ export interface DronePingInfo {
 	id: number
 	bootTime: number // epoch in milliseconds
 	ping: number // µs
+	lastActivate: number // epoch in milliseconds
 }
 
 export type DroneInfo = {
@@ -201,6 +198,7 @@ export type DroneInfo = {
 	gps?: GPSData
 	home?: GPSData
 	rotate?: RotateData
+	bootTime?: number
 	ping?: number
 	lastActivate?: number
 	extra?: DroneExtraInfo | null

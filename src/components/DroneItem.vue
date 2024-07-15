@@ -103,8 +103,10 @@ onBeforeUnmount(() => {
 			>, <span>{{ relpos?.z.toFixed(2) || '--' }}</span
 			>]
 		</b>
-		<div class="ping">{{ drone.ping ? formatMicroseconds(drone.ping) : '--' }}</div>
-		<b class="last-activate">{{ drone.lastActivate ? formatLastActivate(drone.lastActivate) : 'never' }}</b>
+		<div class="ping">{{ drone.ping !== undefined ? formatMicroseconds(drone.ping) : '--' }}</div>
+		<b class="last-activate">{{
+			drone.lastActivate !== undefined ? formatLastActivate(drone.lastActivate) : 'never'
+		}}</b>
 		<!-- TODO: Only need a few colors and flash for LED control -->
 		<ColorPicker
 			ref="picker"

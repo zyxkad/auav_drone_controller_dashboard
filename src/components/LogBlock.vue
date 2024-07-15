@@ -137,7 +137,10 @@ function onVisibilityChange(): void {
 
 function formatDate(date: Date): string {
 	const pad2 = (n: number) => n.toString().padStart(2, '0')
-	return `${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`
+	return `${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}.${date
+		.getMilliseconds()
+		.toString()
+		.padStart(3, '0')}`
 }
 
 defineExpose({

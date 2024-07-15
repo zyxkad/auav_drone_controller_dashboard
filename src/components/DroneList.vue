@@ -47,8 +47,8 @@ const sortMethod = ref<(a: DroneInfo, b: DroneInfo) => number>((a, b) => a.id - 
 const dronesSorted = computed(() => Array.from(props.drones.values()).sort(sortMethod.value))
 
 async function doDroneAction(action: DroneAction): Promise<void> {
-	const drones = Array.from(selected.length === 0 ? props.drones.keys() : selected)
-	if (drones.length === 0) {
+	const drones = selected.length === 0 ? null : Array.from(selected)
+	if (drones !== null && drones.length === 0) {
 		toast.add({
 			severity: 'error',
 			summary: 'Drone Action Failed',
@@ -60,11 +60,19 @@ async function doDroneAction(action: DroneAction): Promise<void> {
 	const resp = await api.requestDroneAction(action, drones)
 	if (resp.ok) {
 		toast.add({
-			severity: 'info',
+			severity: resp.data.failed === 0 ? 'info' : 'warn',
 			summary: 'Drone Action Requested',
-			detail: `Requested ${drones.length} drones to ${action}`,
+			detail: `Requested ${resp.data.targets - resp.data.failed} / ${resp.data.targets} drones to ${action}`,
 			life: 1000,
 		})
+		if (resp.data.failed > 0) {
+			toast.add({
+				severity: 'error',
+				summary: 'Drone Action Failed',
+				detail: resp.data.errors[0],
+				life: 5000,
+			})
+		}
 	} else {
 		toast.add({
 			severity: 'error',
@@ -76,11 +84,11 @@ async function doDroneAction(action: DroneAction): Promise<void> {
 }
 
 async function doChangeMode(mode: FlightMode): Promise<void> {
-	const drones = Array.from(selected.length === 0 ? props.drones.keys() : selected)
-	if (drones.length === 0) {
+	const drones = selected.length === 0 ? null : Array.from(selected)
+	if (drones !== null && drones.length === 0) {
 		toast.add({
 			severity: 'error',
-			summary: 'Drone Action Failed',
+			summary: 'Mode Change Failed',
 			detail: 'No selected drones',
 			life: 1500,
 		})
@@ -89,11 +97,19 @@ async function doChangeMode(mode: FlightMode): Promise<void> {
 	const resp = await api.changeDroneMode(mode, drones)
 	if (resp.ok) {
 		toast.add({
-			severity: 'info',
+			severity: resp.data.failed === 0 ? 'info' : 'warn',
 			summary: 'Mode Change Successed',
-			detail: `Changed ${drones.length} drones to ${mode}`,
+			detail: `Changed ${resp.data.targets - resp.data.failed} / ${resp.data.targets} drones to ${mode}`,
 			life: 1000,
 		})
+		if (resp.data.failed > 0) {
+			toast.add({
+				severity: 'error',
+				summary: 'Mode Change Failed',
+				detail: resp.data.errors[0],
+				life: 5000,
+			})
+		}
 	} else {
 		toast.add({
 			severity: 'error',
@@ -139,7 +155,12 @@ const globalItems: MenuItem[] = [
 		items: [
 			{ label: 'Hold All', icon: 'pi pi-hourglass', command: () => doDroneAction(DroneAction.HOLD) },
 			{ label: 'Home All', icon: 'pi pi-home', command: () => doDroneAction(DroneAction.HOME) },
-			{ label: 'Land All', icon: 'pi pi-cloud-download', command: () => doDroneAction(DroneAction.LAND) },
+			{
+				label: 'Land All',
+				disabled: true,
+				icon: 'pi pi-cloud-download',
+				command: () => doDroneAction(DroneAction.LAND),
+			},
 			{ label: 'Disarm All', icon: 'pi pi-ban', command: () => doDroneAction(DroneAction.DISARM) },
 		],
 	},
@@ -185,7 +206,12 @@ const groupItems: MenuItem[] = [
 		items: [
 			{ label: 'Hold Selected', icon: 'pi pi-hourglass', command: () => doDroneAction(DroneAction.HOLD) },
 			{ label: 'Home Selected', icon: 'pi pi-home', command: () => doDroneAction(DroneAction.HOME) },
-			{ label: 'Land Selected', icon: 'pi pi-cloud-download', command: () => doDroneAction(DroneAction.LAND) },
+			{
+				label: 'Land Selected',
+				disabled: true,
+				icon: 'pi pi-cloud-download',
+				command: () => doDroneAction(DroneAction.LAND),
+			},
 			{ label: 'Disarm Selected', icon: 'pi pi-ban', command: () => doDroneAction(DroneAction.DISARM) },
 		],
 	},
