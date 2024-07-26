@@ -14,7 +14,8 @@
   "dependencies": {
     "@primevue/themes": "^4.0.0",
     "axios": "^1.7.2",
-    "go-aws": "^1.0.0",
+    "go-aws": "^1.0.1",
+    "jszip": "^3.10.1",
     "pinia": "^2.0.32",
     "primeicons": "^7.0.0",
     "primevue": "^4.0.0",

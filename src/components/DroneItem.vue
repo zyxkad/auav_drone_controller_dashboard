@@ -85,7 +85,7 @@ onBeforeUnmount(() => {
 			<b class="id">{{ drone.id }}</b>
 		</div>
 		<b class="status">{{ drone.status || '--' }}</b>
-		<b class="mode">{{ drone.mode !== undefined ? FlightMode[drone.mode] : '--' }}</b>
+		<b class="mode">{{ drone.mode !== undefined ? FlightMode[drone.mode] || drone.mode.toString() : '--' }}</b>
 		<div class="voltage">{{ drone.battery?.voltage.toFixed(3) || '--' }}</div>
 		<div class="current">{{ drone.battery?.current.toFixed(3) || '--' }}</div>
 		<b class="remaining">{{ drone.battery ? (drone.battery.remaining * 100).toFixed(1) : '--' }}</b>
@@ -195,10 +195,9 @@ onBeforeUnmount(() => {
 	animation: none;
 }
 
-.status-light[status='NAV'] {
+.status-light[status='MANUAL'] {
 	--flash-from: var(--p-yellow-500);
 	--flash-to: var(--p-yellow-400);
-	animation-duration: 2s;
 }
 
 .status-light[status='ERROR'] {

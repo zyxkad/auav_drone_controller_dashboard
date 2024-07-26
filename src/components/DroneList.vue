@@ -143,10 +143,15 @@ async function doCopyGPS(): Promise<void> {
 	})
 }
 
-const changeModeMenuItems: MenuItem[] = Object.values(FlightMode)
-	.filter(Number.isInteger as (v: unknown) => v is FlightMode)
-	.sort((a, b) => a - b)
-	.map<MenuItem>((m) => ({ label: `(${m}) ${FlightMode[m]}`, command: () => doChangeMode(m) }))
+const changeModeMenuItem: MenuItem = {
+	label: 'Change Mode',
+	icon: 'pi pi-hammer',
+	class: 'change-mode-context-item',
+	items: Object.values(FlightMode)
+		.filter(Number.isInteger as (v: unknown) => v is FlightMode)
+		.sort((a, b) => a - b)
+		.map<MenuItem>((m) => ({ label: `(${m}) ${FlightMode[m]}`, command: () => doChangeMode(m) })),
+}
 
 const globalItems: MenuItem[] = [
 	{
@@ -165,10 +170,8 @@ const globalItems: MenuItem[] = [
 		],
 	},
 	{
+		...changeModeMenuItem,
 		label: 'Change Mode All',
-		icon: 'pi pi-hammer',
-		class: 'change-mode-context-item',
-		items: changeModeMenuItems,
 	},
 	{ label: 'Sleep All', icon: 'pi pi-moon', command: () => doDroneAction(DroneAction.SLEEP) },
 	{ label: 'Wakeup All', icon: 'pi pi-eye', command: () => doDroneAction(DroneAction.WAKEUP) },
@@ -185,14 +188,11 @@ const individualItems: MenuItem[] = [
 			{ label: 'Home', icon: 'pi pi-home', command: () => doDroneAction(DroneAction.HOME) },
 			{ label: 'Land', icon: 'pi pi-cloud-download', command: () => doDroneAction(DroneAction.LAND) },
 			{ label: 'Disarm', icon: 'pi pi-ban', command: () => doDroneAction(DroneAction.DISARM) },
+			{ label: 'Arm', icon: 'pi pi-cloud-upload', command: () => doDroneAction(DroneAction.ARM) },
+			{ label: 'Takeoff', icon: 'pi pi-cloud-upload', command: () => doDroneAction(DroneAction.TAKEOFF) },
 		],
 	},
-	{
-		label: 'Change Mode',
-		icon: 'pi pi-hammer',
-		class: 'change-mode-context-item',
-		items: changeModeMenuItems,
-	},
+	changeModeMenuItem,
 	{ label: 'Sleep', icon: 'pi pi-moon', command: () => doDroneAction(DroneAction.SLEEP) },
 	{ label: 'Wakeup', icon: 'pi pi-eye', command: () => doDroneAction(DroneAction.WAKEUP) },
 	{ label: 'Control Lights', icon: 'pi pi-sliders-v', command: doControlLight },
@@ -216,10 +216,8 @@ const groupItems: MenuItem[] = [
 		],
 	},
 	{
+		...changeModeMenuItem,
 		label: 'Change Mode Selected',
-		icon: 'pi pi-hammer',
-		class: 'change-mode-context-item',
-		items: changeModeMenuItems,
 	},
 	{ label: 'Sleep Selected', icon: 'pi pi-moon', command: () => doDroneAction(DroneAction.SLEEP) },
 	{ label: 'Wakeup Selected', icon: 'pi pi-eye', command: () => doDroneAction(DroneAction.WAKEUP) },

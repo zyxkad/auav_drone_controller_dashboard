@@ -24,6 +24,13 @@ export class RespStatus<T = void> {
 		return s
 	}
 
+	asData(): T {
+		if (this.ok) {
+			return this.data
+		}
+		throw new Error('RespError: ' + this.toString())
+	}
+
 	static fromAxios<T = void>(resp: AxiosResponse<T>): RespStatus<T> {
 		const { status, data } = resp
 		if (400 <= status && status < 600) {
@@ -89,7 +96,7 @@ export enum DroneStatus {
 	SLEEPING = 'SLEEPING',
 	ARMED = 'ARMED',
 	TAKENOFF = 'TAKENOFF',
-	NAV = 'NAV',
+	MANUAL = 'MANUAL',
 	ERROR = 'ERROR',
 }
 
@@ -236,7 +243,11 @@ export enum DroneAction {
 	WAKEUP = 'WAKEUP',
 }
 
-export interface DirectorDrone {
-	id: number
-	action: DroneAction
+export interface DirectorStatus {
+	assigning: number
+	assigned: number
+	total: number
+	ready: boolean
+	status: string
+	log: string
 }

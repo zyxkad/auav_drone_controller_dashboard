@@ -24,7 +24,7 @@ const sleepingDrones = computed(() => countDrones((d) => d.status === DroneStatu
 const readyDrones = computed(() => countDrones((d) => d.status === DroneStatus.READY))
 const armingDrones = computed(() => countDrones((d) => d.status === DroneStatus.ARMED))
 const flyingDrones = computed(() => countDrones((d) => d.status === DroneStatus.TAKENOFF))
-const navDrones = computed(() => countDrones((d) => d.status === DroneStatus.NAV))
+const manualDrones = computed(() => countDrones((d) => d.status === DroneStatus.MANUAL))
 const errorDrones = computed(() => countDrones((d) => d.status === DroneStatus.ERROR))
 </script>
 
@@ -63,9 +63,9 @@ const errorDrones = computed(() => countDrones((d) => d.status === DroneStatus.E
 					<h4 class="label">Hover</h4>
 					<b>{{ flyingDrones }}</b>
 				</div>
-				<div class="navigating">
-					<h4 class="label">Auto</h4>
-					<b>{{ navDrones }}</b>
+				<div class="manual">
+					<h4 class="label">Manual</h4>
+					<b>{{ manualDrones }}</b>
 				</div>
 				<div class="errors">
 					<h4 class="label">Errors</h4>
@@ -117,7 +117,7 @@ const errorDrones = computed(() => countDrones((d) => d.status === DroneStatus.E
 .flying {
 	grid-area: T;
 }
-.navigating {
+.manual {
 	grid-area: N;
 }
 .errors {
@@ -170,10 +170,9 @@ const errorDrones = computed(() => countDrones((d) => d.status === DroneStatus.E
 	animation: none;
 }
 
-.navigating > .label::before {
+.manual > .label::before {
 	--flash-from: var(--p-yellow-500);
 	--flash-to: var(--p-yellow-400);
-	animation-duration: 2s;
 }
 
 .errors > .label::before {

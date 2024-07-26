@@ -3,12 +3,14 @@ import { ref, onMounted } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import Button from 'primevue/button'
 import Toast from 'primevue/toast'
-import DirectorDialog from '@/components/DirectorDialog.vue'
+import DirectorSetupDialog from '@/components/DirectorSetupDialog.vue'
+import DirectorControlDialog from '@/components/DirectorControlDialog.vue'
 import * as api from '@/api/instance'
 
 const loraConnected = ref(true)
 const rtkConnected = ref(true)
-const director = ref<typeof DirectorDialog>()
+const directorSetup = ref<typeof DirectorSetupDialog>()
+const showDirector = ref(false)
 
 onMounted(() => {
 	api.connectedLoraPort().then((config) => {
@@ -16,6 +18,11 @@ onMounted(() => {
 	})
 	api.connectedRtkPort().then((config) => {
 		rtkConnected.value = !!config
+	})
+	api.pollDirector().then((res) => {
+		if (res.ok) {
+			showDirector.value = true
+		}
 	})
 })
 </script>
@@ -37,16 +44,18 @@ onMounted(() => {
 			<RouterLink to="/setup/satellite">
 				<Button severity="info" label="Satellite" />
 			</RouterLink>
-			<Button severity="contrast" label="Director" @click="director?.open()" />
+			<Button severity="contrast" label="Director" @click="directorSetup?.open()" />
 		</nav>
 	</header>
 
 	<RouterView v-slot="{ Component }">
+		<!-- TODO: embed HomeView but not use router -->
 		<KeepAlive include="HomeView">
 			<component :is="Component" @lora-bind="loraConnected = true" @rtk-bind="rtkConnected = true" />
 		</KeepAlive>
 	</RouterView>
-	<DirectorDialog ref="director" />
+	<DirectorSetupDialog ref="directorSetup" @setup="showDirector = true" />
+	<DirectorControlDialog v-if="showDirector" @destroyed="showDirector = false" />
 	<Toast position="top-right" />
 </template>
 
