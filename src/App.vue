@@ -55,7 +55,7 @@ onMounted(() => {
 		</KeepAlive>
 	</RouterView>
 	<DirectorSetupDialog ref="directorSetup" @setup="showDirector = true" />
-	<DirectorControlDialog v-if="showDirector" @destroyed="showDirector = false" />
+	<DirectorControlDialog v-if="showDirector" @destroyed="showDirector = false" :avaliableDrones="[]" />
 	<Toast position="top-right" />
 </template>
 

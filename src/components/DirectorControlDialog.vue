@@ -40,7 +40,7 @@ const status = computed<DirectorStatus>(
 const idling = computed(() => !status.value.status)
 
 async function onAssign(): Promise<void> {
-	const droneId = parseInt(selectedDrone.value)
+	const droneId = parseInt(selectedDrone.value as any)
 	if (!droneId) {
 		toast.add({
 			severity: 'error',
