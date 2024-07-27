@@ -37,7 +37,7 @@ const status = computed<DirectorStatus>(
 			total: 0,
 		},
 )
-const idling = computed(() => !status.value.status)
+const idling = computed(() => status.value.assigning <= 0)
 
 async function onAssign(): Promise<void> {
 	const droneId = parseInt(selectedDrone.value as any)
