@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 import { RespStatus } from './index'
-import type { Device, LoraConfig } from './index'
+import type { Device, Endpoint, LoraConfig } from './index'
 
 interface AvaliableDevicesResp {
 	devices: Device[]
@@ -17,7 +17,7 @@ export async function connectedLoraPort(): Promise<LoraConfig | null> {
 	return resp.data
 }
 
-async function tryConnectLoraPort(config: LoraConfig): Promise<RespStatus> {
+async function tryConnectLoraPort(config: Endpoint): Promise<RespStatus> {
 	return await axios
 		.post(`/api/lora/connect`, config, {
 			validateStatus: (status) => 200 <= status && status < 600,
@@ -33,7 +33,7 @@ export async function disconnectLoraPort(): Promise<RespStatus> {
 		.then(RespStatus.fromAxios)
 }
 
-export async function connectLoraPort(config: LoraConfig): Promise<RespStatus> {
+export async function connectLoraPort(config: Endpoint): Promise<RespStatus> {
 	const resp = await tryConnectLoraPort(config)
 	if (resp.status !== 409) {
 		return resp

@@ -210,13 +210,7 @@ async function onDestroy(): Promise<void> {
 				{{ status.log }}
 			</code>
 			<div v-if="idling" class="button">
-				<Button
-					class="button-m10-1"
-					:loading="requesting"
-					label="Assign"
-					icon="pi pi-address-book"
-					@click="onAssign"
-				/>
+				<Button class="button-m10-1" :loading="requesting" label="Assign" icon="pi pi-address-book" @click="onAssign" />
 				<Select v-model="selectedDrone" editable :options="avaliableDrones" placeholder="Select a drone" />
 			</div>
 			<template v-else>
@@ -249,14 +243,7 @@ async function onDestroy(): Promise<void> {
 	</Dialog>
 	<Dialog v-model:visible="destroyConfirmVisible" header="Are you sure to destroy the director?">
 		<div style="margin-top: 0.5rem">
-			<Button
-				class="button-m10-1"
-				label="Destroy"
-				icon="pi pi-times"
-				severity="danger"
-				outlined
-				@click="onDestroy"
-			/>
+			<Button class="button-m10-1" label="Destroy" icon="pi pi-times" severity="danger" outlined @click="onDestroy" />
 			<Button
 				label="Cancel"
 				icon="pi pi-times"

@@ -57,9 +57,33 @@ export interface Device {
 	description: string
 }
 
-export type LoraConfig = {
-	device: string
-	baudRate: number
+export type Endpoint =
+	| {
+			type: 'serial'
+			data: {
+				device: string
+				baudRate: number
+			}
+	  }
+	| {
+			type: 'network'
+			data: {
+				network: string
+				host: string
+				port: number
+				broadcastHost?: string
+				broadcastPort?: number
+			}
+	  }
+	| {
+			type: 'unknown'
+			data: {
+				raw: any
+			}
+	  }
+
+export interface LoraConfig {
+	endpoints: Endpoint[]
 }
 
 export interface RTKConfig {

@@ -3,10 +3,13 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
+import InputText from 'primevue/inputtext'
+import InputNumber from 'primevue/inputnumber'
 import Select from 'primevue/select'
 import { useToast } from 'primevue/usetoast'
+import TransitionExpand from '@/components/TransitionExpand.vue'
 import * as api from '@/api/instance'
-import type { RespStatus, Device, LoraConfig } from '@/api'
+import type { RespStatus, Device, Endpoint, LoraConfig } from '@/api'
 
 const props = defineProps<{
 	nextURL?: string
@@ -20,12 +23,21 @@ const router = useRouter()
 const toast = useToast()
 
 const loraConfig = reactive({
+	type: 'serial',
 	device: 0,
 	baudRate: 115200,
+
+	network: 'udp-broadcast',
+	host: '0.0.0.0',
+	port: 14550,
+	broadcastHost: '255.255.255.255',
+	broadcastPort: 14555,
 })
 
+const avaliableEndpointTypes = ['serial', 'network']
 const avaliableDevices = ref<Device[] | null>(null)
 const avaliableBaudRates = [4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600]
+const avaliableNetworks = ['tcp', 'udp', 'tcp-server', 'udp-server', 'udp-broadcast']
 const submitting = ref(false)
 
 async function submitLoraSetup(): Promise<void> {
@@ -37,10 +49,34 @@ async function submitLoraSetup(): Promise<void> {
 		return
 	}
 	submitting.value = true
-	const res = await api.connectLoraPort({
-		device: device.name,
-		baudRate: loraConfig.baudRate,
-	})
+	let endpoint: Endpoint
+	switch (loraConfig.type) {
+		case 'serial':
+			endpoint = {
+				type: loraConfig.type,
+				data: {
+					device: device.name,
+					baudRate: loraConfig.baudRate,
+				},
+			}
+			break
+		case 'network':
+			endpoint = {
+				type: loraConfig.type,
+				data: {
+					network: loraConfig.network,
+					host: loraConfig.host,
+					port: loraConfig.port,
+					broadcastHost: loraConfig.broadcastHost,
+					broadcastPort: loraConfig.broadcastPort,
+				},
+			}
+			break
+		default:
+			console.error('Unexpected endpoint type:', loraConfig.type)
+			return
+	}
+	const res = await api.connectLoraPort(endpoint)
 	submitting.value = false
 	if (res.ok) {
 		emit('lora-bind')
@@ -58,8 +94,15 @@ async function submitLoraSetup(): Promise<void> {
 onMounted(() => {
 	Promise.all([
 		api.connectedLoraPort().then((config) => {
-			if (config) {
-				loraConfig.baudRate = config.baudRate
+			if (!config) {
+				return config
+			}
+			const endpoint = config.endpoints[0]
+			if (!endpoint) {
+				return config
+			}
+			if (endpoint.type === 'serial') {
+				loraConfig.baudRate = endpoint.data.baudRate || 115200
 			}
 			return config
 		}),
@@ -68,7 +111,7 @@ onMounted(() => {
 		}),
 	]).then(([config]) => {
 		if (config && avaliableDevices.value) {
-			const i = avaliableDevices.value.findIndex(({ name }) => name === config.device)
+			const i = avaliableDevices.value.findIndex(({ name }) => name === (config.endpoints[0]?.data as any)?.device)
 			if (i >= 0) {
 				loraConfig.device = i
 			}
@@ -83,46 +126,101 @@ onMounted(() => {
 		<template #content>
 			<form v-focustrap @submit.prevent="submitLoraSetup">
 				<div class="option-box">
-					<label>Decive</label>
-					<Select
-						class="option-input"
-						v-model="loraConfig.device"
-						:options="
-							avaliableDevices === null
-								? ['Loading ...']
-								: Array(avaliableDevices.length)
-										.fill(0)
-										.map((_, i) => i)
-						"
-						placeholder="Device"
-					>
-						<template #value="slotProps">
-							<template v-if="avaliableDevices === null"> Loading ... </template>
-							<template v-else>
-								{{ avaliableDevices[slotProps.value].name }} ({{ avaliableDevices[slotProps.value].description }})
-							</template>
-						</template>
-						<template #option="slotProps" v-if="avaliableDevices !== null">
-							{{ avaliableDevices[slotProps.option].name }} ({{ avaliableDevices[slotProps.option].description }})
-						</template>
-					</Select>
+					<label>Endpoint Type</label>
+					<Select class="option-input" v-model="loraConfig.type" :options="avaliableEndpointTypes" placeholder="Type" />
 				</div>
-				<div class="option-box">
-					<label>BaudRate</label>
-					<Select
-						class="option-input"
-						v-model="loraConfig.baudRate"
-						:options="avaliableBaudRates"
-						placeholder="BaudRate"
-					>
-						<template #value="slotProps">
-							{{ slotProps.value }}
-						</template>
-						<template #option="slotProps">
-							{{ slotProps.option }}
-						</template>
-					</Select>
-				</div>
+				<TransitionExpand>
+					<div v-if="loraConfig.type === 'serial'">
+						<div class="option-box">
+							<label>Decive</label>
+							<Select
+								class="option-input"
+								v-model="loraConfig.device"
+								:options="
+									avaliableDevices === null
+										? ['Loading ...']
+										: Array(avaliableDevices.length)
+												.fill(0)
+												.map((_, i) => i)
+								"
+								placeholder="Device"
+							>
+								<template #value="slotProps">
+									<template v-if="avaliableDevices === null"> Loading ... </template>
+									<template v-else>
+										{{ avaliableDevices[slotProps.value].name }} ({{ avaliableDevices[slotProps.value].description }})
+									</template>
+								</template>
+								<template #option="slotProps" v-if="avaliableDevices !== null">
+									{{ avaliableDevices[slotProps.option].name }} ({{ avaliableDevices[slotProps.option].description }})
+								</template>
+							</Select>
+						</div>
+						<div class="option-box">
+							<label>BaudRate</label>
+							<Select
+								class="option-input"
+								v-model="loraConfig.baudRate"
+								:options="avaliableBaudRates"
+								placeholder="BaudRate"
+							>
+								<template #value="slotProps">
+									{{ slotProps.value }}
+								</template>
+								<template #option="slotProps">
+									{{ slotProps.option }}
+								</template>
+							</Select>
+						</div>
+					</div>
+				</TransitionExpand>
+				<TransitionExpand>
+					<div v-if="loraConfig.type === 'network'">
+						<div class="option-box">
+							<label>Network</label>
+							<Select
+								class="option-input"
+								v-model="loraConfig.network"
+								:options="avaliableNetworks"
+								placeholder="Network"
+							/>
+						</div>
+						<div class="option-box">
+							<label>Host</label>
+							<InputText class="option-input" v-model="loraConfig.host" placeholder="Host" />
+						</div>
+						<div class="option-box">
+							<label>Port</label>
+							<InputNumber
+								class="option-input"
+								v-model="loraConfig.port"
+								placeholder="Port"
+								:useGrouping="false"
+								:min="1"
+								:max="65535"
+							/>
+						</div>
+						<TransitionExpand>
+							<div v-if="loraConfig.network === 'udp-broadcast'">
+								<div class="option-box">
+									<label>Broadcast Host</label>
+									<InputText class="option-input" v-model="loraConfig.broadcastHost" placeholder="Broadcast Host" />
+								</div>
+								<div class="option-box">
+									<label>Broadcast Port</label>
+									<InputNumber
+										class="option-input"
+										v-model="loraConfig.broadcastPort"
+										placeholder="Broadcast Port"
+										:useGrouping="false"
+										:min="1"
+										:max="65535"
+									/>
+								</div>
+							</div>
+						</TransitionExpand>
+					</div>
+				</TransitionExpand>
 				<div class="button-box">
 					<Button type="submit" label="Submit" :loading="submitting" />
 					<RouterLink :to="nextURL || '/'">

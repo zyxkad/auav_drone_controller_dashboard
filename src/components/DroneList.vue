@@ -10,6 +10,7 @@ import DroneItem from './DroneItem.vue'
 import { DroneAction, type ColorInfo, type DroneInfo } from '@/api'
 import * as api from '@/api/instance'
 import { FlightMode } from '@/data/ardupilot'
+import { bindRefToLocalStorage } from '@/storage'
 
 const props = defineProps<{
 	drones: ReadonlyMap<number, DroneInfo>
@@ -26,7 +27,10 @@ const selected = reactive<number[]>([])
 
 const filterSelectElem = ref()
 const filterOptions = ['Status', 'Mode', 'Voltage', 'Current', 'Remaining', 'GPS Type', 'GPS', 'Relative Pos', 'Ping']
-const selectedFilters = ref(Array.from(filterOptions))
+const selectedFilters = bindRefToLocalStorage(
+	'drone.controller.dash.dronelist.stat.filter',
+	ref(Array.from(filterOptions)),
+)
 const enabledColumns = {
 	status: computed(() => selectedFilters.value.includes('Status')),
 	mode: computed(() => selectedFilters.value.includes('Mode')),
@@ -46,8 +50,8 @@ const leftStucking = ref(false)
 const sortMethod = ref<(a: DroneInfo, b: DroneInfo) => number>((a, b) => a.id - b.id)
 const dronesSorted = computed(() => Array.from(props.drones.values()).sort(sortMethod.value))
 
-async function doDroneAction(action: DroneAction): Promise<void> {
-	const drones = selected.length === 0 ? null : Array.from(selected)
+async function doDroneAction(action: DroneAction, forceAll?: boolean): Promise<void> {
+	const drones = forceAll || selected.length === 0 ? null : Array.from(selected)
 	if (drones !== null && drones.length === 0) {
 		toast.add({
 			severity: 'error',
@@ -314,27 +318,42 @@ onMounted(() => {
 <template>
 	<Card class="card-overflow-hidden" @click="onClickDrone" @contextmenu.stop="onContextMenu">
 		<template #title>
-			<h3 class="no-select no-margin inline-block">Drones</h3>
-			<Button
-				text
-				rounded
-				severity="secondary"
-				icon="pi pi-filter"
-				style="margin-left: 0.3em"
-				@click="filterSelectElem.$el.click($event)"
-			/>
-			<MultiSelect
-				ref="filterSelectElem"
-				class="not-visible"
-				:showToggleAll="false"
-				scrollHeight="14.5rem"
-				v-model="selectedFilters"
-				:options="filterOptions"
-			>
-				<template #option="slotProps">
-					{{ slotProps.option }}
-				</template>
-			</MultiSelect>
+			<div class="flex-row-center flex-space-between">
+				<div>
+					<h3 class="no-select no-margin inline-block">Drones</h3>
+					<Button
+						text
+						rounded
+						severity="secondary"
+						icon="pi pi-filter"
+						style="margin-left: 0.3em"
+						@click="filterSelectElem.$el.click($event)"
+					/>
+					<MultiSelect
+						ref="filterSelectElem"
+						class="not-visible"
+						:showToggleAll="false"
+						scrollHeight="14.5rem"
+						v-model="selectedFilters"
+						:options="filterOptions"
+					>
+						<template #option="slotProps">
+							{{ slotProps.option }}
+						</template>
+					</MultiSelect>
+				</div>
+				<div>
+					<Button
+						text
+						rounded
+						raised
+						severity="warn"
+						icon="pi pi-hourglass"
+						label="Hold All"
+						@click="doDroneAction(DroneAction.HOLD, true)"
+					/>
+				</div>
+			</div>
 		</template>
 		<template #content>
 			<div
