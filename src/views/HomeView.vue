@@ -1,24 +1,21 @@
 <script setup lang="ts">
 import { ref, reactive, readonly, onBeforeMount } from 'vue'
-import { useToast } from 'primevue/usetoast'
-import type { ToastMessageOptions } from 'primevue/toast'
 import DroneList from '@/components/DroneList.vue'
 import DroneOverview from '@/components/DroneOverview.vue'
 import LogBlock from '@/components/LogBlock.vue'
 import RtkStatus from '@/components/RtkStatus.vue'
 import LeftRightButton from '@/components/LeftRightButton.vue'
-import type { ColorInfo, DroneInfo, DroneStatusInfo, DronePositionInfo, DronePingInfo, LogMessage } from '@/api'
-import { DroneStatus } from '@/api'
-import { onAwsEvent, sendAwsMessage } from '@/stores/aws'
+import type { ColorInfo, DroneInfo, LogMessage } from '@/api'
+import { onAwsEvent } from '@/stores/aws'
 import { FlightMode } from '@/data/ardupilot'
 
-const toast = useToast()
+defineProps<{
+	drones: ReadonlyMap<number, DroneInfo>
+}>()
 
 const logBlk = ref<InstanceType<typeof LogBlock>>()
 
 const extLog = ref(0)
-const drones = reactive<Map<number, DroneInfo>>(new Map())
-const readonlyDrones = readonly(drones)
 
 const reverseLogBoxAni = ref(false)
 const extendingLog = ref(false)
@@ -75,81 +72,6 @@ function onLedChanged(drone: number, color: ColorInfo) {
 onAwsEvent<LogMessage>('log', ({ data }) => {
 	logBlk.value?.pushLog(data)
 })
-
-interface ToastMessage {
-	level: ToastMessageOptions['severity']
-	title: string
-	msg: string
-	life: number
-}
-
-onAwsEvent<ToastMessage>('toast', ({ data }) => {
-	toast.add({
-		severity: data.level,
-		summary: data.title,
-		detail: data.msg,
-		life: data.life,
-	})
-})
-
-// TODO: query drone list once websocket connected
-onAwsEvent<number>('drone-connected', ({ data }) => {
-	const d = drones.get(data)
-	if (d) {
-		d.status = DroneStatus.UNSTABLE
-	} else {
-		drones.set(data, {
-			id: data,
-			status: DroneStatus.UNSTABLE,
-		})
-	}
-})
-
-onAwsEvent<number>('drone-disconnected', ({ data }) => {
-	const d = drones.get(data)
-	if (d) {
-		d.status = DroneStatus.NONE
-	}
-})
-
-onAwsEvent<(DroneStatusInfo & DronePositionInfo)[]>('drone-list', ({ data }) => {
-	for (const item of data) {
-		const d = drones.get(item.id)
-		if (d) {
-			Object.assign(d, item)
-		} else {
-			drones.set(item.id, item)
-		}
-	}
-})
-
-onAwsEvent<DroneStatusInfo>('drone-info', ({ data }) => {
-	const d = drones.get(data.id)
-	if (!d) {
-		return
-	}
-	Object.assign(d, data)
-})
-
-onAwsEvent<DronePositionInfo>('drone-pos', ({ data }) => {
-	const d = drones.get(data.id)
-	if (!d) {
-		return
-	}
-	Object.assign(d, data)
-})
-
-onAwsEvent<DronePingInfo>('drone-ping', ({ data }) => {
-	const d = drones.get(data.id)
-	if (!d) {
-		return
-	}
-	Object.assign(d, data)
-})
-
-onBeforeMount(() => {
-	sendAwsMessage('drone-list-req')
-})
 </script>
 
 <template>
@@ -172,8 +94,8 @@ onBeforeMount(() => {
 				@clickRight="shrinkLog"
 			/>
 		</div>
-		<DroneOverview class="no-select drone-status" :drones="readonlyDrones" />
-		<DroneList class="drone-list" :drones="readonlyDrones" @ledChanged="onLedChanged" />
+		<DroneOverview class="no-select drone-status" :drones="drones" />
+		<DroneList class="drone-list" :drones="drones" @ledChanged="onLedChanged" />
 		<LogBlock ref="logBlk" class="log-block" />
 	</main>
 </template>

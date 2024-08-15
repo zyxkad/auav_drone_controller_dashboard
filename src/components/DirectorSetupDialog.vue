@@ -67,7 +67,12 @@ async function onProgramUpload(event: FileUploadUploaderEvent): Promise<void> {
 		return
 	}
 	if (data.version !== 1) {
-		console.error(`Unsupported show file version ${data.version}`)
+		toast.add({
+			severity: 'error',
+			summary: 'Unsupported show file',
+			detail: `Unsupported show file version ${data.version}`,
+			life: 5000,
+		})
 		return
 	}
 	const drones = data.swarm.drones as ShowDroneData[]
@@ -81,7 +86,7 @@ async function onSubmit(): Promise<void> {
 			toast.add({
 				severity: 'error',
 				summary: 'No Points Provided',
-				detail: 'Program file is not uploaded, or the points set is empty',
+				detail: 'Program file is not uploaded, or the point set is empty',
 				life: 5000,
 			})
 			return

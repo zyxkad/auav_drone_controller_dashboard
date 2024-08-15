@@ -5,11 +5,12 @@ import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Select from 'primevue/select'
-import type { DirectorStatus } from '@/api'
+import type { DroneInfo, DirectorStatus } from '@/api'
+import { DroneStatus } from '@/api'
 import * as api from '@/api/v1'
 
 const props = defineProps<{
-	avaliableDrones: number[]
+	drones: ReadonlyMap<number, DroneInfo>
 }>()
 
 const emit = defineEmits<{
@@ -18,9 +19,24 @@ const emit = defineEmits<{
 
 const toast = useToast()
 
-const selectedDrone = ref<number | string>()
+const automated = ref(0)
 const requesting = ref(false)
 const destroyConfirmVisible = ref(false)
+const selectedDrone = ref<number | string>()
+const assignedDrones: number[] = []
+
+const avaliableDrones = computed(() => {
+	const avaliables = []
+	for (const drone of props.drones.values()) {
+		if (drone.status === DroneStatus.READY) {
+			if (!assignedDrones.includes(drone.id)) {
+				avaliables.push(drone.id)
+			}
+		}
+	}
+	avaliables.sort()
+	return avaliables
+})
 
 const { data } = useRequest(async () => (await api.pollDirector()).asData(), {
 	pollingInterval: 500,
@@ -50,6 +66,10 @@ async function onAssign(): Promise<void> {
 		})
 		return
 	}
+	return await assignDrone(droneId)
+}
+
+async function assignDrone(droneId: number): Promise<void> {
 	if (requesting.value) {
 		toast.add({
 			severity: 'warn',
@@ -78,6 +98,97 @@ async function onAssign(): Promise<void> {
 	} finally {
 		requesting.value = false
 	}
+}
+
+const INTERRUPT_ERROR = new Error('Automate operate canceled')
+
+async function onAutomatedAssign(): Promise<void> {
+	if (automated.value) {
+		return
+	}
+	automated.value = 1
+	try {
+		await onAutomatedAssign0()
+	} catch (e) {
+		if (e !== INTERRUPT_ERROR) {
+			throw e
+		}
+	} finally {
+		automated.value = 0
+	}
+}
+
+function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function sleepOrInterrupt(ms: number): Promise<void> {
+	const CHECK_INTERVAL = 500
+	const c = Math.floor(ms / CHECK_INTERVAL)
+	const r = ms - c * CHECK_INTERVAL
+	for (let i = 0; i < c; i++) {
+		await sleep(CHECK_INTERVAL)
+		if (automated.value !== 1) {
+			throw INTERRUPT_ERROR
+		}
+	}
+	await sleep(r)
+	if (automated.value !== 1) {
+		throw INTERRUPT_ERROR
+	}
+}
+
+async function onAutomatedAssign0(): Promise<void> {
+	if (status.value.assigned >= status.value.total) {
+		toast.add({
+			severity: 'warn',
+			summary: 'Automate Done',
+			detail: 'No empty slot left to assign',
+			life: 300,
+		})
+		return
+	}
+	const getStatus = () => status.value.status
+	while (status.value.assigned < status.value.total) {
+		while (!avaliableDrones.value) {
+			console.log('[director]: Waiting for avaliableDrones')
+			await sleepOrInterrupt(1000)
+		}
+		const next = avaliableDrones.value[0]
+		console.log(`[director]: Assigning ${next}`)
+		await assignDrone(next)
+		await sleepOrInterrupt(1000)
+		await onCheck()
+		console.log(`[director]: Waiting until check complete for ${next}`)
+		while (true) {
+			await sleepOrInterrupt(1000)
+			if (getStatus() !== 'Checking') {
+				if (getStatus() === 'Check.Successed') {
+					break
+				}
+				console.log(`[director]: Check failed for ${next}, scheduled again after 3s`)
+				await sleepOrInterrupt(3000)
+				await onCheck()
+			}
+		}
+		await onTransfer()
+		console.log(`[director]: Waiting until ${next} transfered`)
+		while (true) {
+			await sleepOrInterrupt(1000)
+			if (getStatus() !== 'Transfering') {
+				if (getStatus() === 'Transfer.Successed') {
+					break
+				}
+				console.log(`[director]: Drone ${next} transfer failed`)
+				return
+			}
+		}
+	}
+}
+
+async function onCancelAutomate(): Promise<void> {
+	automated.value = -1
+	return await onCancel()
 }
 
 async function onCheck(): Promise<void> {
@@ -209,15 +320,40 @@ async function onDestroy(): Promise<void> {
 			<code class="log-block">
 				{{ status.log }}
 			</code>
-			<div v-if="idling" class="button">
-				<Button class="button-m10-1" :loading="requesting" label="Assign" icon="pi pi-address-book" @click="onAssign" />
-				<Select v-model="selectedDrone" editable :options="avaliableDrones" placeholder="Select a drone" />
+			<div v-if="idling">
+				<div v-if="!automated" class="button flex-row-center">
+					<Button
+						class="button-m10-1"
+						:loading="requesting"
+						label="Assign"
+						icon="pi pi-address-book"
+						@click="onAssign"
+					/>
+					<Select
+						v-model="selectedDrone"
+						editable
+						:options="avaliableDrones"
+						placeholder="Select a drone"
+						style="width: 10rem; height: 2.3rem"
+					/>
+				</div>
+				<div class="button">
+					<Button
+						v-if="!automated"
+						label="Automated Assign"
+						icon="pi pi-graduation-cap"
+						severity="help"
+						@click="onAutomatedAssign"
+						style="width: 21rem"
+					/>
+				</div>
 			</div>
 			<template v-else>
 				<!-- TODO: define a status enum -->
 				<div class="button">
 					<Button
 						:loading="requesting"
+						:disabled="automated"
 						label="Check"
 						icon="pi pi-pen-to-square"
 						severity="success"
@@ -228,6 +364,7 @@ async function onDestroy(): Promise<void> {
 				<div v-if="status.ready" class="button">
 					<Button
 						:loading="requesting"
+						:disabled="automated"
 						label="Transfer"
 						icon="pi pi-upload"
 						severity="warn"
@@ -239,6 +376,16 @@ async function onDestroy(): Promise<void> {
 					<Button label="Cancel" icon="pi pi-times" severity="danger" outlined fluid @click="onCancel" />
 				</div>
 			</template>
+			<div class="button">
+				<Button
+					v-if="automated"
+					label="Cancel Automate"
+					icon="pi pi-times"
+					severity="contrast"
+					fluid
+					@click="onCancelAutomate"
+				/>
+			</div>
 		</template>
 	</Dialog>
 	<Dialog v-model:visible="destroyConfirmVisible" header="Are you sure to destroy the director?">
