@@ -199,6 +199,7 @@ const individualItems: MenuItem[] = [
 	changeModeMenuItem,
 	{ label: 'Sleep', icon: 'pi pi-moon', command: () => doDroneAction(DroneAction.SLEEP) },
 	{ label: 'Wakeup', icon: 'pi pi-eye', command: () => doDroneAction(DroneAction.WAKEUP) },
+	{ label: 'Disable Fence', icon: 'pi pi-lock-open', command: () => api.disableFence(selected[0]) },
 	{ label: 'Control Lights', icon: 'pi pi-sliders-v', command: doControlLight },
 	{ label: 'Copy GPS', icon: 'pi pi-globe', command: doCopyGPS },
 ]

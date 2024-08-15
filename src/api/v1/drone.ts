@@ -35,3 +35,18 @@ export async function changeDroneMode(mode: number, drones: number[] | null): Pr
 		)
 		.then(RespStatus.fromAxios)
 }
+
+export async function disableFence(drone: number): Promise<RespStatus> {
+	return await axios
+		.post<void>(
+			`/api/drone/fence`,
+			{
+				drone: drone,
+				disable: true,
+			},
+			{
+				validateStatus: (status) => 200 <= status && status < 600,
+			},
+		)
+		.then(RespStatus.fromAxios)
+}

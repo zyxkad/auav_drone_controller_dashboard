@@ -376,7 +376,7 @@ async function onDestroy(): Promise<void> {
 					/>
 				</div>
 				<div class="button">
-					<Button label="Cancel" icon="pi pi-times" severity="danger" outlined fluid @click="onCancel" />
+					<Button label="Cancel" icon="pi pi-times" severity="danger" outlined fluid :disabled="automated" @click="onCancel" />
 				</div>
 			</template>
 			<div class="button">
