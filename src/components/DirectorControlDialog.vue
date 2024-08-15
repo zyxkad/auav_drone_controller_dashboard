@@ -144,42 +144,42 @@ async function onAutomatedAssign0(): Promise<void> {
 			severity: 'warn',
 			summary: 'Automate Done',
 			detail: 'No empty slot left to assign',
-			life: 300,
+			life: 3000,
 		})
 		return
 	}
 	const getStatus = () => status.value.status
 	while (status.value.assigned < status.value.total) {
 		while (!avaliableDrones.value) {
-			console.log('[director]: Waiting for avaliableDrones')
+			console.log('[automata]: Waiting for avaliableDrones')
 			await sleepOrInterrupt(1000)
 		}
 		const next = avaliableDrones.value[0]
-		console.log(`[director]: Assigning ${next}`)
+		console.log(`[automata]: Assigning ${next}`)
 		await assignDrone(next)
 		await sleepOrInterrupt(1000)
 		await onCheck()
-		console.log(`[director]: Waiting until check complete for ${next}`)
+		console.log(`[automata]: Waiting until check complete for ${next}`)
 		while (true) {
 			await sleepOrInterrupt(1000)
 			if (getStatus() !== 'Checking') {
 				if (getStatus() === 'Check.Successed') {
 					break
 				}
-				console.log(`[director]: Check failed for ${next}, scheduled again after 3s`)
+				console.log(`[automata]: Check failed for ${next}, scheduled again after 3s`)
 				await sleepOrInterrupt(3000)
 				await onCheck()
 			}
 		}
 		await onTransfer()
-		console.log(`[director]: Waiting until ${next} transfered`)
+		console.log(`[automata]: Waiting until ${next} transfered`)
 		while (true) {
 			await sleepOrInterrupt(1000)
 			if (getStatus() !== 'Transfering') {
 				if (getStatus() === 'Transfer.Successed') {
 					break
 				}
-				console.log(`[director]: Drone ${next} transfer failed`)
+				console.log(`[automata]: Drone ${next} transfer failed`)
 				return
 			}
 		}
@@ -416,7 +416,7 @@ async function onDestroy(): Promise<void> {
 
 .log-block {
 	display: block;
-	width: min(40rem, 90vw);
+	width: min(41rem, 90vw);
 	margin-top: 1rem;
 }
 
