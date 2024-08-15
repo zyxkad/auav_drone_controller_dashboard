@@ -150,7 +150,7 @@ async function onAutomatedAssign0(): Promise<void> {
 	}
 	const getStatus = () => status.value.status
 	while (status.value.assigned < status.value.total) {
-		while (!avaliableDrones.value) {
+		while (!avaliableDrones.value.length) {
 			console.log('[automata]: Waiting for avaliableDrones')
 			await sleepOrInterrupt(1000)
 		}
@@ -187,7 +187,9 @@ async function onAutomatedAssign0(): Promise<void> {
 }
 
 async function onCancelAutomate(): Promise<void> {
-	automated.value = -1
+	if (automated.value !== 0) {
+		automated.value = -1
+	}
 	return await onCancel()
 }
 
@@ -272,6 +274,7 @@ async function onCancel(): Promise<void> {
 }
 
 async function onDestroy(): Promise<void> {
+	onCancelAutomate()
 	destroyConfirmVisible.value = false
 	const res = await api.destroyDirector()
 	if (res.ok) {
