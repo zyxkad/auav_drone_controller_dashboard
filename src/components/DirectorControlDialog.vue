@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRequest } from 'vue-request'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
@@ -23,7 +23,7 @@ const automated = ref(0)
 const requesting = ref(false)
 const destroyConfirmVisible = ref(false)
 const selectedDrone = ref<number | string>()
-const assignedDrones: number[] = []
+const assignedDrones = reactive<number[]>([])
 
 const avaliableDrones = computed(() => {
 	const avaliables = []
@@ -142,14 +142,24 @@ async function onAutomatedAssign0(): Promise<void> {
 	if (status.value.assigned >= status.value.total) {
 		toast.add({
 			severity: 'warn',
-			summary: 'Automate Done',
+			summary: 'Automate Init Failed',
 			detail: 'No empty slot left to assign',
 			life: 3000,
 		})
 		return
 	}
 	const getStatus = () => status.value.status
+	assignedDrones.length = 0
 	while (status.value.assigned < status.value.total) {
+		if (status.value.assigned != assignedDrones.length) {
+			toast.add({
+				severity: 'error',
+				summary: 'Automate Failed',
+				detail: 'Status not match',
+				life: 30000,
+			})
+			return
+		}
 		while (!avaliableDrones.value.length) {
 			console.log('[automata]: Waiting for avaliableDrones')
 			await sleepOrInterrupt(1000)
@@ -157,7 +167,7 @@ async function onAutomatedAssign0(): Promise<void> {
 		const next = avaliableDrones.value[0]
 		console.log(`[automata]: Assigning ${next}`)
 		await assignDrone(next)
-		await sleepOrInterrupt(1000)
+		await sleepOrInterrupt(3000)
 		await onCheck()
 		console.log(`[automata]: Waiting until check complete for ${next}`)
 		while (true) {
@@ -166,7 +176,7 @@ async function onAutomatedAssign0(): Promise<void> {
 				if (getStatus() === 'Check.Successed') {
 					break
 				}
-				console.log(`[automata]: Check failed for ${next}, scheduled again after 3s`)
+				console.log(`[automata]: Check failed for ${next}, schedule again after 3s`)
 				await sleepOrInterrupt(3000)
 				await onCheck()
 			}
@@ -376,7 +386,15 @@ async function onDestroy(): Promise<void> {
 					/>
 				</div>
 				<div class="button">
-					<Button label="Cancel" icon="pi pi-times" severity="danger" outlined fluid :disabled="automated" @click="onCancel" />
+					<Button
+						label="Cancel"
+						icon="pi pi-times"
+						severity="danger"
+						outlined
+						fluid
+						:disabled="automated"
+						@click="onCancel"
+					/>
 				</div>
 			</template>
 			<div class="button">
