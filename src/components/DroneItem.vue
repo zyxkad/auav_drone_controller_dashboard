@@ -103,6 +103,12 @@ onBeforeUnmount(() => {
 			>, <span>{{ relpos?.z.toFixed(2) || '--' }}</span
 			>]
 		</b>
+		<div class="rotate">
+			[<span>{{ drone.rotate?.pitch.toFixed(1) || '--' }}</span
+			>, <span>{{ drone.rotate?.roll.toFixed(1) || '--' }}</span
+			>, <span>{{ drone.rotate?.yaw.toFixed(1) || '--' }}</span
+			>]
+		</div>
 		<div class="ping">{{ drone.ping !== undefined ? formatMicroseconds(drone.ping) : '--' }}</div>
 		<b class="last-activate">{{
 			drone.lastActivate !== undefined ? formatLastActivate(drone.lastActivate) : 'never'
@@ -234,6 +240,9 @@ onBeforeUnmount(() => {
 .relpos {
 	width: 15em;
 }
+.rotate {
+	width: 15em;
+}
 .ping {
 	width: 4.2em;
 }
@@ -254,6 +263,10 @@ onBeforeUnmount(() => {
 .remaining::after {
 	content: '%';
 	font-size: 0.8em;
+}
+
+.rotate > span::after {
+	content: '°';
 }
 
 .led {

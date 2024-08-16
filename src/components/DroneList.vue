@@ -26,7 +26,7 @@ const menu = ref<InstanceType<typeof ContextMenu>>()
 const selected = reactive<number[]>([])
 
 const filterSelectElem = ref()
-const filterOptions = ['Status', 'Mode', 'Voltage', 'Current', 'Remaining', 'GPS Type', 'GPS', 'Relative Pos', 'Ping']
+const filterOptions = ['Status', 'Mode', 'Voltage', 'Current', 'Remaining', 'GPS Type', 'GPS', 'Relative Pos', 'Rotate', 'Ping']
 const selectedFilters = bindRefToLocalStorage(
 	'drone.controller.dash.dronelist.stat.filter',
 	ref(Array.from(filterOptions)),
@@ -40,6 +40,7 @@ const enabledColumns = {
 	'gps-type': computed(() => selectedFilters.value.includes('GPS Type')),
 	gps: computed(() => selectedFilters.value.includes('GPS')),
 	relpos: computed(() => selectedFilters.value.includes('Relative Pos')),
+	rotate: computed(() => selectedFilters.value.includes('Rotate')),
 	ping: computed(() => selectedFilters.value.includes('Ping')),
 }
 
@@ -383,7 +384,8 @@ onMounted(() => {
 					<div class="remaining">POWER</div>
 					<div class="gps-type">GPS_TYPE</div>
 					<div class="gps">GPS - (LAT, LON, ALT)</div>
-					<div class="relpos">[EAST, NORTH, HEIGHT]</div>
+					<div class="relpos">[NORTH, EAST, HEIGHT]</div>
+					<div class="rotate">[PITCH, ROLL, YAW]</div>
 					<div class="ping">PING</div>
 					<div class="last-activate">LAST_ACTIVATE</div>
 				</div>
@@ -479,6 +481,9 @@ onMounted(() => {
 .relpos {
 	width: 15em;
 }
+.rotate {
+	width: 1em;
+}
 .ping {
 	width: 4.2em;
 }
@@ -505,6 +510,9 @@ onMounted(() => {
 	display: none;
 }
 .relpos-hide :deep(.relpos) {
+	display: none;
+}
+.rotate-hide :deep(.rotate) {
 	display: none;
 }
 .ping-hide :deep(.ping) {
