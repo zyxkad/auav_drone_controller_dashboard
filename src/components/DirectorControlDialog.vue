@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRequest } from 'vue-request'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
@@ -303,6 +303,13 @@ async function onDestroy(): Promise<void> {
 		life: 5000,
 	})
 }
+
+onMounted(() => {
+	api.arrivedDirector().then((resp) => {
+		const { arrived } = resp.data
+		assignedDrones.push(...arrived)
+	})
+})
 </script>
 
 <template>

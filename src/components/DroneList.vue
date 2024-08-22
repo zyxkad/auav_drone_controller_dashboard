@@ -26,7 +26,18 @@ const menu = ref<InstanceType<typeof ContextMenu>>()
 const selected = reactive<number[]>([])
 
 const filterSelectElem = ref()
-const filterOptions = ['Status', 'Mode', 'Voltage', 'Current', 'Remaining', 'GPS Type', 'GPS', 'Relative Pos', 'Rotate', 'Ping']
+const filterOptions = [
+	'Status',
+	'Mode',
+	'Voltage',
+	'Current',
+	'Remaining',
+	'GPS Type',
+	'GPS',
+	'Relative Pos',
+	'Rotate',
+	'Ping',
+]
 const selectedFilters = bindRefToLocalStorage(
 	'drone.controller.dash.dronelist.stat.filter',
 	ref(Array.from(filterOptions)),
@@ -482,7 +493,7 @@ onMounted(() => {
 	width: 15em;
 }
 .rotate {
-	width: 1em;
+	width: 15em;
 }
 .ping {
 	width: 4.2em;

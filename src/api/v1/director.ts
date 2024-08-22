@@ -33,6 +33,14 @@ export async function destroyDirector(): Promise<RespStatus<MultiOpResp>> {
 		.then(RespStatus.fromAxios)
 }
 
+export async function arrivedDirector(): Promise<RespStatus<{ arrived: number[] }>> {
+	return await axios
+		.get<{ arrived: number[] }>(`/api/director/arrived`, {
+			validateStatus: (status) => 200 <= status && status < 600,
+		})
+		.then(RespStatus.fromAxios)
+}
+
 export async function assignDirector(droneId: number): Promise<RespStatus<MultiOpResp>> {
 	return await axios
 		.post<MultiOpResp>(
