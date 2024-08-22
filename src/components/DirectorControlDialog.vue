@@ -148,18 +148,17 @@ async function onAutomatedAssign0(): Promise<void> {
 		})
 		return
 	}
+	if (status.value.assigned != assignedDrones.length) {
+		toast.add({
+			severity: 'error',
+			summary: 'Automate Failed',
+			detail: 'Status not match',
+			life: 30000,
+		})
+		return
+	}
 	const getStatus = () => status.value.status
-	assignedDrones.length = 0
 	while (status.value.assigned < status.value.total) {
-		if (status.value.assigned != assignedDrones.length) {
-			toast.add({
-				severity: 'error',
-				summary: 'Automate Failed',
-				detail: 'Status not match',
-				life: 30000,
-			})
-			return
-		}
 		while (!avaliableDrones.value.length) {
 			console.log('[automata]: Waiting for avaliableDrones')
 			await sleepOrInterrupt(1000)
@@ -187,12 +186,14 @@ async function onAutomatedAssign0(): Promise<void> {
 			await sleepOrInterrupt(1000)
 			if (getStatus() !== 'Transfering') {
 				if (getStatus() === 'Transfer.Successed') {
+					assignedDrones.push(next)
 					break
 				}
 				console.log(`[automata]: Drone ${next} transfer failed`)
 				return
 			}
 		}
+		await sleepOrInterrupt(1000)
 	}
 }
 
