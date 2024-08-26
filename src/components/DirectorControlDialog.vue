@@ -45,15 +45,17 @@ const { data } = useRequest(async () => (await api.pollDirector()).asData(), {
 const status = computed<DirectorStatus>(
 	() =>
 		data.value || {
-			status: '',
-			log: '',
 			assigning: 0,
-			ready: false,
 			assigned: 0,
 			total: 0,
+			ready: false,
+			status: '',
+			log: '',
 		},
 )
 const idling = computed(() => status.value.assigning <= 0)
+
+const retrySignalTrigger = ref<() => void>()
 
 async function onAssign(): Promise<void> {
 	const droneId = parseInt(selectedDrone.value as any)
@@ -100,10 +102,10 @@ async function assignDrone(droneId: number): Promise<void> {
 	}
 }
 
-const INTERRUPT_ERROR = new Error('Automate operate canceled')
+const INTERRUPT_ERROR = new Error('Automate operation canceled')
 
 async function onAutomatedAssign(): Promise<void> {
-	if (automated.value) {
+	if (automated.value !== 0) {
 		return
 	}
 	automated.value = 1
@@ -136,6 +138,19 @@ async function sleepOrInterrupt(ms: number): Promise<void> {
 	if (automated.value !== 1) {
 		throw INTERRUPT_ERROR
 	}
+}
+
+async function retryOrInterrupt(): Promise<void> {
+	let flag = true
+	retrySignalTrigger.value = () => (flag = false)
+	while (flag) {
+		await sleep(250)
+		if (automated.value !== 1) {
+			retrySignalTrigger.value = undefined
+			throw INTERRUPT_ERROR
+		}
+	}
+	retrySignalTrigger.value = undefined
 }
 
 async function onAutomatedAssign0(): Promise<void> {
@@ -175,8 +190,8 @@ async function onAutomatedAssign0(): Promise<void> {
 				if (getStatus() === 'Check.Successed') {
 					break
 				}
-				console.log(`[automata]: Check failed for ${next}, schedule again after 3s`)
-				await sleepOrInterrupt(3000)
+				console.log(`[automata]: Check failed for ${next}`)
+				await retryOrInterrupt()
 				await onCheck()
 			}
 		}
@@ -189,8 +204,8 @@ async function onAutomatedAssign0(): Promise<void> {
 					assignedDrones.push(next)
 					break
 				}
-				console.log(`[automata]: Drone ${next} transfer failed`)
-				return
+				console.log(`[automata]: Transfer failed for ${next}`)
+				await retryOrInterrupt()
 			}
 		}
 		await sleepOrInterrupt(1000)
@@ -358,9 +373,8 @@ onMounted(() => {
 						style="width: 10rem; height: 2.3rem"
 					/>
 				</div>
-				<div class="button">
+				<div v-if="!automated" class="button">
 					<Button
-						v-if="!automated"
 						label="Automated Assign"
 						icon="pi pi-graduation-cap"
 						severity="help"
@@ -405,15 +419,11 @@ onMounted(() => {
 					/>
 				</div>
 			</template>
-			<div class="button">
-				<Button
-					v-if="automated"
-					label="Cancel Automate"
-					icon="pi pi-times"
-					severity="contrast"
-					fluid
-					@click="onCancelAutomate"
-				/>
+			<div v-if="automated && retrySignalTrigger" class="button">
+				<Button label="Retry" icon="pi pi-times" severity="info" fluid @click="retrySignalTrigger" />
+			</div>
+			<div v-if="automated" class="button">
+				<Button label="Cancel Automate" icon="pi pi-refresh" severity="contrast" fluid @click="onCancelAutomate" />
 			</div>
 		</template>
 	</Dialog>
